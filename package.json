@@ -1,0 +1,39 @@
+{
+  "name": "hey-pi",
+  "version": "1.0.0",
+  "description": "A CLI to run a hey-pi server on your local machine",
+  "preferGlobal": true,
+  "bin": {
+    "heypi": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/armynante/hey-pi-cli.git"
+  },
+  "keywords": [
+    "CLI",
+    "hey-pi",
+    "API",
+    "node",
+    "database"
+  ],
+  "author": "Andrew Mark Armenante <andrew.armenante@gmail.com> (cachemoneymillionaires.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/armynante/hey-pi-cli/issues"
+  },
+  "homepage": "https://github.com/armynante/hey-pi-cli#readme",
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "cli-color": "^1.1.0",
+    "co": "^4.6.0",
+    "co-prompt": "^1.0.0",
+    "commander": "^2.9.0",
+    "inquirer": "^0.11.0",
+    "prompt": "^0.2.14",
+    "shelljs": "^0.5.3"
+  }
+}
