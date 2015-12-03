@@ -1,0 +1,158 @@
+-
+  list = [{"name":"Docs"}, {"name":"About"}, {"name":"Register"},{"name":"Login"}]
+- 
+-var resp1 = {"email":"mr.mixx@hey-pi.com","password":"$2a$10$j957YhakYd7sZOlH8SNMAuikZ/6fYw8gSNXeizzdpnmfE.AtYzW76","numCols":0,"numDocs":0,"writes":0,"reads":0,"createdOn":"2015-11-11T03:12:29.934Z","_id":"5643e1ce2fa3412189f138fd","iat":1447289294,"exp":1447375694,"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNleW1vcmUuYnV0dHNAaGV5LXBpLmNvbSIsInBhc3N3b3JkIjoiJDJhJDEwJGo5NTdZaGFrWWQ3c1pPbEg4U05NQXVpa1ovNmZZdzhnU05YZWl6emRwbm1mRS5BdFl6Vzc2IiwibnVtQ29scyI6MCwibnVtRG9jcyI6MCwid3JpdGVzIjowLCJyZWFkcyI6MCwiY3JlYXRlZE9uIjoiMjAxNS0xMS0xMVQwMzoxMjoyOS45MzRaIiwiX2lkIjoiNTY0M2UxY2UyZmEzNDEyMTg5ZjEzOGZkIiwiaWF0IjoxNDQ3Mjg5Mjk0LCJleHAiOjE0NDczNzU2OTR9.mP-oBkmhG769T6Jbm5K3y7CF0s5d7aZ23pR0qEPqjIg"}
+-var resp2 = {"_id":"5643ead39254d2ff8e7937fd","email":"mr.mixx@hey-pi.com","password":"$2a$10$uBEC9qGABBLXT/urtAeUO.O6tf1nGZF9XeWHVHerVM5v.T2R4RkpK","numCols":0,"numDocs":0,"writes":0,"reads":0,"createdOn":"2015-11-12T01:07:40.622Z","iat":1447291906,"exp":1447378306,"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJfaWQiOiI1NjQzZWFkMzkyNTRkMmZmOGU3OTM3ZmQiLCJlbWFpbCI6InNleW1vcmVidXR0c0BoZXktcGkuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkdUJFQzlxR0FCQkxYVC91cnRBZVVPLk82dGYxbkdaRjlYZVdIVkhlclZNNXYuVDJSNFJrcEsiLCJudW1Db2xzIjowLCJudW1Eb2NzIjowLCJ3cml0ZXMiOjAsInJlYWRzIjowLCJjcmVhdGVkT24iOiIyMDE1LTExLTEyVDAxOjA3OjQwLjYyMloiLCJpYXQiOjE0NDcyOTE5MDYsImV4cCI6MTQ0NzM3ODMwNn0.3XG_4R1vC0evaAG1l99qknrCHb8qg9Q69Vsx2T-FS6k","authorized":true}
+-var resp3 = {"name":"2 live crew","location":"Miami, Florida, U.S.","genre":"Miami bass","nasty":true,"id":"5643f28b87d485e48f8b8416"}
+-var resp4 = [{"_id":"5643f28b87d485e48f8b8416","name":"2 live crew","location":"Miami, Florida, U.S.","genre":"Miami bass","nasty":true}]
+-var resp5 = {"name":"Luke","nastiness":9.5,"role":"rapper","active":false,"birthdate":"1960-12-22T05:00:00.000Z","heypi_id":"5643ead39254d2ff8e7937fd","crewsid":"5643f28b87d485e48f8b8416","id":"564418e653498a5091981d3b"}
+-var resp6 = [{"_id":"5643f28b87d485e48f8b8416","name":"2 live crew","location":"Miami, Florida, U.S.","genre":"Miami bass","nasty":true},{"_id":"56441cde53498a5091981d3d"},{"_id":"56441d4253498a5091981d3f","name":"poison clan","location":"Miami, Florida, U.S.","genre":"Miami bass","nasty":true},{"_id":"56441d8253498a5091981d40","name":"wreckx-n-effect","location":"Harlem, New York, U.S.","genre":"New Jack Swing","nasty":true},{"name":"will smith","location":"Los Angeles","genre":"Hip Hop","nasty":false}]
+-var resp7 = [{"_id":"56441d4253498a5091981d3f","name":"poison clan","location":"Miami, Florida, U.S.","genre":"Miami bass","nasty":true}]
+-var resp8 = [{"_id":"564424120cc7c08c936f23d4","name":"will smith","location":"Los Angeles","genre":"Hip Hop","nasty":false}]
+-var syntaxHighlight = function (json) {
+-    if (typeof json != 'string') {
+-         json = JSON.stringify(json, undefined, 2);
+-    }
+-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+-        var cls = 'number';
+-        if (/^"/.test(match)) {
+-            if (/:$/.test(match)) {
+-                cls = 'key';
+-            } else {
+-                cls = 'string';
+-            }
+-        } else if (/true|false/.test(match)) {
+-            cls = 'boolean';
+-        } else if (/null/.test(match)) {
+-            cls = 'null';
+-        }
+-        return '<span class="' + cls + '">' + match + '</span>';
+-    });
+-}
+
+doctype html
+html(lang="en")
+  head
+    title= message
+    style
+      include home.css
+      include foundation.min.css
+    script
+      include jquery.min.js
+      include foundation.js
+      include home.js
+    
+  body
+    div.navigation
+      ul
+        each item in list
+          li  
+            a(data-open="#{item.name}")=item.name
+    div.header
+      | <div class="rc-ribbon-green-top-right"><a href="http://www.recurse.com" title="Made with love at the Recurse Center"><i class="icon-svg"><svg viewBox="0 0 12 15"><rect x="0" y="0" width="12" height="10" fill="black"></rect><rect x="1" y="1" width="10" height="8" fill="white"></rect><rect x="2" y="2" width="8" height="6" fill="black"></rect><rect x="2" y="3" width="1" height="1" fill="#61ae24"></rect><rect x="4" y="3" width="1" height="1" fill="#61ae24"></rect><rect x="6" y="3" width="1" height="1" fill="#61ae24"></rect><rect x="3" y="5" width="2" height="1" fill="#61ae24"></rect><rect x="6" y="5" width="2" height="1" fill="#61ae24"></rect><rect x="4" y="9" width="4" height="3" fill="black"></rect><rect x="1" y="11" width="10" height="4" fill="black"></rect><rect x="0" y="12" width="12" height="3" fill="black"></rect><rect x="2" y="13" width="1" height="1" fill="white"></rect><rect x="3" y="12" width="1" height="1" fill="white"></rect><rect x="4" y="13" width="1" height="1" fill="white"></rect><rect x="5" y="12" width="1" height="1" fill="white"></rect><rect x="6" y="13" width="1" height="1" fill="white"></rect><rect x="7" y="12" width="1" height="1" fill="white"></rect><rect x="8" y="13" width="1" height="1" fill="white"></rect><rect x="9" y="12" width="1" height="1" fill="white"></rect></svg></i><span><span>Made at the </span><strong>Recurse Center</strong></span></a></div>
+
+      div.jumbo 
+        h1.logo Hey.p.i
+        h1 (hey-p-eye) is a datastore and API for your prototype or front-end project
+        p deploy it as a back-end or use it as a hosted service
+      div.project-types
+        a(href="#hosted")
+          button.hosted hosted
+        button.npm-module npm module
+          //- div.register-box.register
+          //-   form(name="register")
+          //-     table
+          //-       tr
+          //-         td
+          //-           label email
+          //-         td 
+          //-           input(type="email",name="email").input-area
+          //-       tr
+          //-         td
+          //-           label password
+          //-         td
+          //-           input(type="password",name="pass").input-area 
+          //-       tr
+          //-         td
+          //-           label comfirm
+          //-         td
+          //-           input(type="password",name="passconf").input-area 
+          //-       tr
+          //-         td
+          //-         td
+          //-           button.cancel cancel 
+          //-           button(type="submit",id="register-click") submit
+          div(id="Login", data-reveal="").reveal
+            form(name="login")
+              div.row
+                div.medium-6.columns
+          
+                  label email
+                  input(type="email",name="email").input-area
+          
+                  label password
+                  input(type="password",name="pass").input-area 
+                  
+                  button.cancel cancel 
+                  button(type="submit",id="login-click") submit
+        
+      
+
+        
+    div.api
+      
+      div.route
+        div.route-name authorize
+        div.description Get a new token to access the API. The tokens exprie and need to be re-created from time to time.
+        div.code-block curl -H "Content-Type: application/json" -X POST -d '{"email":#{email},"pass":#{password} https://hey-pi.com/authorize
+        div.description Response includes a new token that you can use to access the API.
+        div.code-block 
+          pre
+            !=syntaxHighlight(resp2)
+
+      div.route
+        div.route-name POST
+        div.description You can POST data to a new collection by simply directing an ajax call to a new route. For example if I wanted to make a database of rap groups I could just send data to hey-pi.com/api/crews.
+        div.code-block curl -H "Content-Type: application/json" -H "x-access-token: #{token}" -X POST -d '{"name":"2 live crew","location":"Miami, Florida, U.S.","genre":"Miami bass","nasty":true}' https://hey-pi.com/api/crews
+        div.description If the POST was successful then you will recive the newly created document with an id attached.
+        div.code-block 
+          pre
+            !=syntaxHighlight(resp3)
+
+        div.description 
+          !="You can also post to collections that have been already initialized and create new related documents. If you have the collection <em style='color: #B8E986'>crews</em>, you can create a new document in a related collection called <em style='color: #B8E986'>members</em> by simply posting to that route. There is no need to setup a schema"
+        div.code-block curl -H "Content-Type: application/json" -H "x-access-token: #{token}" -X POST -d '{"name":"Luke","nastiness":9.5,"role":"rapper","active":false, "birthdate":"1960-12-22T05:00:00.000Z"}' https://hey-pi.com/api/crews/members
+            
+        div.description If the POST was successful then you will recive the newly created document with an id attached.
+        div.code-block 
+          pre
+            !=syntaxHighlight(resp5)
+  
+  
+      div.route
+        div.route-name GET
+        div.description Data can be retrieved from hey-pi by simply using a GET pointed at the name of the collection. To access the crews from the previous example we can curl the collection.
+        div.code-block curl -H "x-access-token: #{token}" https://hey-pi.com/api/crews
+        div.description Response is an array of all the documents in that collection.
+        div.code-block 
+          pre
+            !=syntaxHighlight(resp6)
+            
+      div.route
+        div.route-name QUERYING DATA    
+        div.description Query data by using the document's id in the url. Just place the id of the document after the name of the collection it's in.
+        div.code-block curl -H "x-access-token: #{token}" https://hey-pi.com/api/crews/56441d4253498a5091981d3f
+        div.description Response is an array with the document inside.
+        div.code-block 
+          pre
+            !=syntaxHighlight(resp7)
+        div.description 
+         !="You can also query data by any field name as long as the value was stored in lowercase. For example we find the name of a crew by the field name: <em>name</em>. After the name of the collection type the name of the field proceded by _<em>fieldName</em>_is_<em>fieldValue</em>."
+        div.code-block curl -H "x-access-token: #{token}" https://hey-pi.com/api/crews/name_is_wreckx-n-effect
+        div.description 
+          !="simple query operations are can be used in the url to collect sets of data"
+        div.code-block curl -H "x-access-token: #{token}" https://hey-pi.com/api/crews/nasty_is_false
+        div.code-block 
+          pre
+            !=syntaxHighlight(resp8)

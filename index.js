@@ -1,10 +1,9 @@
 #! /usr/bin/env node --harmony
 var shell = require('shelljs/global'),
-		co = require('co'),
-		prompt = require('co-prompt'),
-		program = require('commander'),
 		chalk = require('chalk'),
-		inquirer = require('inquirer');
+		inquirer = require('inquirer'),
+		config = require('./dist/config.js'),
+		fs = require("fs");
 
 var setupOpts = {
 		type: "list",
@@ -12,14 +11,13 @@ var setupOpts = {
 		message: chalk.bold.magenta("What do you want to do?"),
 		choices: [
 				"Setup a new database locally",
-				"Import data into and existing dbs",
-				"Host a database on Digital Ocean"
+				"Host a Hey-PI database on Digital Ocean"
 		]
 };
 var localOpts = {
 		type: "input",
 		name: "port",
-		message: chalk.bold.magenta("What port do you want Hey-P.I to run on?"),
+		message: chalk.bold.magenta("What port do you want Hey-PI to run on?"),
 		default: function () { return "3000"; },
 		validate: function( value ) {
 				var pass = value.match(/^\d{4}$/);
@@ -33,37 +31,57 @@ var localOpts = {
 var start = {
 		type: "confirm",
 		name: "start",
-		message: chalk.bold.magenta("Ready to create the DB?"),
+		message: chalk.bold.magenta("Ready to create the Database?"),
 };
 var mongo = {
 		type: "confirm",
 		name: "install",
-		message: chalk.bold.magenta("Want to attempt to install MongoDB on your system? \n") + chalk.bold.red('Durring the insrtall you will be required to enter your system pass')
+		message: chalk.bold.magenta("Want to attempt to install MongoDB on your system? \n") + chalk.bold.red('FYI: During the install you will be required to enter your system password')
 };
 
 //Initial load
-inquirer.prompt([setupOpts], function(answers) {
-		if(answers.setup === 'Setup a new database locally') {
-				inquirer.prompt([localOpts,start], function(answers) {
-						if(answers.start) {
-								var validEnv = checkEnv();
-								if(!validEnv) {
-										console.log(chalk.green('valid'));
-								} else {
-										console.log(chalk.red('looks like you dont have mongo installed'));
-										inquirer.prompt([mongo], function(answers) {
-												if(answers.install) {
-														installMongo();
-												} else {
-														console.log(chalk.magenta("try and install mongo using brew"), chalk.italic.green("http://brew.sh/"));
-												}
-										});
-								}
-						}
-				});
-		};
-});
+var userArgs = process.argv.slice(2);
 
+var option = userArgs[0];
+
+if (option === 'start') {
+	console.log(chalk.green('Stating the server...'));
+	exec('node ./dist/server.js');
+} else {
+
+	inquirer.prompt([setupOpts], function(answers) {
+			if(answers.setup === 'Setup a new database locally') {
+					inquirer.prompt([localOpts,start], function(answers) {
+							if(answers.start) {
+									var validEnv = checkEnv();
+									if(validEnv) {
+											console.log(chalk.bold.green('looks like you have mongo installed! AWESOME!'));
+											//set the port number in the config file;
+											config.port = answers.port;
+											var part1 = '"use strict";Object.defineProperty(exports, "__esModule", {value: true}); var config = '
+											var part2 = ';exports["default"] = config;module.exports = exports["default"];//# sourceMappingURL=config.js.map'
+											fs.writeFileSync('./dist/config.js', part1 + JSON.stringify(config) + part2);
+											console.log(chalk.bold.green('Everything looks good...'));
+											console.log(chalk.bold.gray('Run: '), chalk.bold.white('heypi start'));
+											console.log(chalk.bold.gray('to get the server running. Then visit localhost:' + config.port + ' to see the docs'));
+									} else {
+											console.log(chalk.red('looks like you dont have mongo installed'));
+											inquirer.prompt([mongo], function(answers) {
+													if(answers.install) {
+															installMongo();
+															exit(0);
+													} else {
+															console.log(chalk.magenta("try and install mongo using brew"), chalk.italic.green("http://brew.sh/"));
+															exit(0);
+													}
+											});
+									}
+							}
+					});
+			};
+	});
+
+}
 var checkEnv = function() {
 		return which('mongo') !== null  ? true : false;
 };
@@ -95,10 +113,6 @@ var installMongo = function() {
 		console.log(chalk.bold.green('| add this to your bash file (e.g. ~/.bashrc):  |'));
 		console.log(chalk.bold.green('| export PATH=/usr/local/mongodb/bin:$PATH      |'));
 		console.log(chalk.bold.green('|_______________________________________________|'));
+		console.log(chalk.magenta('run heypi start to run the server on port 3000'));
+		console.log(chalk.magenta('or just run heypi again to tweak some settings'));
 };
-
-
-
-
-
-

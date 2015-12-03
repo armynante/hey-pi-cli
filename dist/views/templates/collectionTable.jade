@@ -1,0 +1,13 @@
+md-toolbar.md-theme-light
+  h2.md-toolbar-tools
+    span Full Bleed
+
+  md-content
+    md-list
+      md-list-item(ng-repeat="doc in docs" class="md-3-line")
+        div.md-list-item-text
+          h3 {{doc.name}}
+          h4 {{doc.name}}
+          p {{doc.name}}
+        md-button.md-primary edit
+        md-divider
