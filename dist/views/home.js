@@ -15,12 +15,11 @@ app.config(function($stateProvider,$mdThemingProvider) {
   .state('collections.collectionTable', {
       url:'/:name',
       templateUrl: '/templates/collectionTable',
-      controller: function($stateParams, $scope, $http) {
+      controller: function($stateParams, $scope, $http, $filter) {
 
         $scope.collectionName = $stateParams.name
-
+        $scope.selected = [];
         function getData(query) {
-          if (query === undefined || query === null) query = '';
           var http = $http({
             method: 'GET',
             url: '/api/' + $stateParams.name + query,
@@ -29,47 +28,61 @@ app.config(function($stateProvider,$mdThemingProvider) {
           return http;
         }
 
-        getData().then(function(docs) {
+        $scope.query = {
+          filter: '',
+          order: '',
+          limit: 5,
+          page: 1,
+          string: ''
+        };
+
+        function success(docs) {
+          console.log(docs);
+           $scope.docs = docs;
+         }
+
+        var buildQueryString = function() {
+          //order
+          var direction = '',
+              order = $scope.query.order;
+
+          if (order[0] === '-') {
+            direction = '_down';
+            order = order.substr(1);
+          } else {
+            direction = '_down';
+          }
+
+          if(order !== '') order += '&';
+          var limit = 'limit=' + $scope.query.limit,
+              skip  = '&skip=' + ($scope.query.page - 1) * $scope.query.limit;
+          $scope.query.string = '?' + order + limit + skip;
+          console.log($scope.query.string);
+        }
+
+        //load initial data
+        buildQueryString()
+        getData($scope.query.string).then(function(docs) {
           $scope.docs = docs.data;
+          $scope.query.order = Object.keys(docs.data[0])[1];
         })
 
-          $scope.selected = [];
+        $scope.search = function (predicate) {
+          $scope.filter = predicate;
+          $scope.deferred = $nutrition.desserts.get($scope.query, success).$promise;
+        };
 
-          $scope.query = {
-            filter: '',
-            order: 'name',
-            limit: 5,
-            page: 1
-          };
+        $scope.onOrderChange = function (order) {
+          $scope.docs.reverse();
+          buildQueryString();
+        };
 
-          // in the future we may see a few built in alternate headers but in the mean time
-          // you can implement your own search header and do something like
-          $scope.search = function (predicate) {
-            $scope.filter = predicate;
-            $scope.deferred = $nutrition.desserts.get($scope.query, success).$promise;
-          };
-
-          $scope.onOrderChange = function (order) {
-            var direction = '';
-
-            if (order[0] === '-') {
-              direction = '_down';
-              order.slice(0,1);
-            } else {
-              direction = '_down';
-            }
-
-            var query = '?sort=' + order + direction;
-
-            getData(query).then(function(docs) {
-              $scope.docs = docs.data;
-            })
-          };
-
-          $scope.onPaginationChange = function (page, limit) {
-            return $nutrition.desserts.get($scope.query, success).$promise;
-          };
-
+        $scope.onPaginationChange = function (page, limit) {
+          buildQueryString();
+          getData($scope.query.string).then(function(docs) {
+            $scope.docs = docs.data;
+          })
+        };
 
       }
     })

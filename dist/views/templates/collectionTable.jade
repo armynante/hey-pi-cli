@@ -7,7 +7,7 @@ md-data-table-container
       tr
         th(name="name",order-by="name")
     tbody
-      tr(md-auto-select,ng-repeat="doc in docs")
+      tr(md-auto-select,ng-repeat="doc in docs.documents")
         td {{doc.name}}
 
- md-data-table-pagination(md-limit="query.limit",md-page="query.page",md-total="{{docs.length}}",md-trigger="onPaginationChange")
+ md-data-table-pagination(md-limit="query.limit",md-page="query.page",md-total="{{docs.total}}",md-trigger="onPaginationChange")

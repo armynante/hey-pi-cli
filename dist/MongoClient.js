@@ -164,27 +164,36 @@ var MongoClient = (function (_Mongo) {
           var mongoQuery = resolveObj.mongoQuery;
           //only load data created by the user
           mongoQuery['heypi_id'] = id;
-
+          console.log(limitVal);
           collection.find(mongoQuery, { heypi_id: 0 }).sort(sortVal).limit(limitVal).skip(skipVal).toArray(function (err, docs) {
-
-            docs = docs;
+            //FIXME: What the fuck is this? I know its neccisary for something but forgot
+            var docs = docs;
 
             if (err) reject({
               "code": 500,
               "message": err
             });
 
-            var responseData = {
-              "code": 200,
-              "message": docs
-            };
-            resolve(responseData);
+            collection.count(function (err, count) {
+              if (err) reject({
+                "code": 500,
+                "message": err
+              });
+
+              var responseData = {
+                "code": 200,
+                "message": { "documents": docs, "total": count }
+              };
+
+              resolve(responseData);
+            });
           });
         }, function (err) {
           var responseData = {
             "code": 500,
             "message": err
           };
+
           reject(responseData);
         });
       });
@@ -215,6 +224,7 @@ var MongoClient = (function (_Mongo) {
               "message": "Deleteted " + numDocsDeleted + " documents.",
               "docDelta": numDocsDeleted
             };
+
             resolve(responseData);
           });
         }, function (err) {
@@ -222,6 +232,7 @@ var MongoClient = (function (_Mongo) {
             "code": 500,
             "message": err
           };
+
           reject(responseData);
         });
       });
