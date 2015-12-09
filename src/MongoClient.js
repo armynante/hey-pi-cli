@@ -122,17 +122,16 @@
     return promise;
   }
 
- 	_getData(path, id) {
+ 	_getData(path, id, skipVal, sortVal, limitVal) {
  		var promise = new Promise((resolve, reject) => {
 
  			this._propagateQuery(path).then((resolveObj) => {
  				var collection = resolveObj.collection;
  				var mongoQuery = resolveObj.mongoQuery;
-
         //only load data created by the user
         mongoQuery['heypi_id'] = id;
-
- 				collection.find(mongoQuery,{heypi_id:0}).toArray((err, docs) => {
+        
+ 				collection.find(mongoQuery,{heypi_id:0}).sort(sortVal).limit(limitVal).skip(skipVal).toArray((err, docs) => {
 
  					docs = (docs);
 

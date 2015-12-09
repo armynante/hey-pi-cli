@@ -1,13 +1,13 @@
-md-toolbar.md-theme-light
-  h2.md-toolbar-tools
-    span Full Bleed
+md-data-table-toolbar
+  h2(class="md-title") Documents
 
-  md-content
-    md-list
-      md-list-item(ng-repeat="doc in docs" class="md-3-line")
-        div.md-list-item-text
-          h3 {{doc.name}}
-          h4 {{doc.name}}
-          p {{doc.name}}
-        md-button.md-primary edit
-        md-divider
+md-data-table-container
+  table(md-data-table,md-row-select="selected",md-progress="deferred")
+    thead(md-order="query.order", md-trigger="onOrderChange")
+      tr
+        th(name="name",order-by="name")
+    tbody
+      tr(md-auto-select,ng-repeat="doc in docs")
+        td {{doc.name}}
+
+ md-data-table-pagination(md-limit="query.limit",md-page="query.page",md-total="{{docs.length}}",md-trigger="onPaginationChange")

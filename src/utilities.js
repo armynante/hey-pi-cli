@@ -16,13 +16,24 @@ var utilities = {
 	getFieldNames: function(collection) {
 		return Object.keys(collection);
 	},
-	stripPath: function(path) {
+  stripPath: function(path) {
+      //strip the query
+      path = path.split('?')[0];
+  		path = path.toLowerCase().split("/");
+  		path.splice(0, 2);
+  		return path;
+  },
+  sortParam: function(sortObj) {
+      var sortQuery = {},
+          sort = sortObj.toLowerCase().split('_'),
+          direction = sort[1] === 'up' ? 1 : -1,
+          field = sort[0];
 
-		path = path.toLowerCase().split("/");
-		path.splice(0, 2);
-		return path;
-	},
+          sortQuery[field] = direction;
+          return sortQuery;
+  },
 	parseQuery: function(query) {
+    console.log("Parsing query... " + query);
 		/*
 		Sample queries:
 			/completed_is_true

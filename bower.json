@@ -1,0 +1,30 @@
+{
+  "name": "hey-pi",
+  "description": "A CLI to run a hey-pi server on your local machine",
+  "main": "index.js",
+  "authors": [
+    "Andrew Mark Armenante <andrew.armenante@gmail.com> (cachemoneymillionaires.com)"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "CLI",
+    "hey-pi",
+    "API",
+    "node",
+    "database"
+  ],
+  "homepage": "https://github.com/armynante/hey-pi-cli",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "md-data-table": "*",
+    "angular-ui-router": "~0.2.15",
+    "angular-material-data-table": "~0.8.14"
+  }
+}

@@ -1,4 +1,4 @@
-body {
+/*body {
   margin: 0;
 }
 
@@ -89,9 +89,9 @@ body {
   border-radius: 2px;
 }
 
-/*.login, .register {
+.login, .register {
   display: none;
-}*/
+}
 
 .login {
   position: relative;
@@ -190,4 +190,4 @@ body {
 @font-face {
   font-family: DancingScript;
   src: url("/DancingScript-Regular.otf") format("opentype");
-}
+}*/

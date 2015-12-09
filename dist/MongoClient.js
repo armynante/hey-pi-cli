@@ -154,7 +154,7 @@ var MongoClient = (function (_Mongo) {
     }
   }, {
     key: '_getData',
-    value: function _getData(path, id) {
+    value: function _getData(path, id, skipVal, sortVal, limitVal) {
       var _this8 = this;
 
       var promise = new Promise(function (resolve, reject) {
@@ -162,11 +162,10 @@ var MongoClient = (function (_Mongo) {
         _this8._propagateQuery(path).then(function (resolveObj) {
           var collection = resolveObj.collection;
           var mongoQuery = resolveObj.mongoQuery;
-
           //only load data created by the user
           mongoQuery['heypi_id'] = id;
 
-          collection.find(mongoQuery, { heypi_id: 0 }).toArray(function (err, docs) {
+          collection.find(mongoQuery, { heypi_id: 0 }).sort(sortVal).limit(limitVal).skip(skipVal).toArray(function (err, docs) {
 
             docs = docs;
 

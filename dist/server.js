@@ -32,7 +32,11 @@ var _morgan = require('morgan');
 
 var _morgan2 = _interopRequireDefault(_morgan);
 
-var _mongodb = require("mongodb");
+var _mongodb = require('mongodb');
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
 
 //routers
 
@@ -57,7 +61,7 @@ var app = (0, _express2['default'])();
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/views');
 app.use(_express2['default']['static']('public'));
-
+app.use('/bower_components', _express2['default']['static'](_path2['default'].join(__dirname, '../bower_components')));
 //load the database
 var Mongo = new _MongoClientJs.MongoClient();
 exports['default'] = Mongo;

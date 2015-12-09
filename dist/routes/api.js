@@ -24,6 +24,10 @@ var _guestsJs = require('./guests.js');
 
 var _guestsJs2 = _interopRequireDefault(_guestsJs);
 
+var _utilitiesJs = require('../utilities.js');
+
+var _utilitiesJs2 = _interopRequireDefault(_utilitiesJs);
+
 var router = _express2['default'].Router();
 
 //assigns the users users or "guests" an api key and password.
@@ -40,8 +44,22 @@ router.get('/collections', function (req, res) {
 });
 
 router.get('/*', function (req, res) {
+
+	//structure the query
+	if (req.query.sort !== undefined && req.query.sort !== null) {
+		req.query.sort = _utilitiesJs2['default'].sortParam(req.query.sort);
+	} else {
+		req.query.sort = {};
+	}
+
+	if (req.query.skip === undefined || req.query.skip === null) req.query.skip = 0;
+	if (req.query.limit === undefined || req.query.limit === null) req.query.limit = 50;
+
+	req.query.limit = parseInt(req.query.limit);
+	req.query.skip = parseInt(req.query.skip);
+
 	if (req.strip_path[0] !== undefined) {
-		_serverJs2['default']._getData(req.strip_path, req.user._id).then(function (resp) {
+		_serverJs2['default']._getData(req.strip_path, req.user._id, req.query.skip, req.query.sort, req.query.limit).then(function (resp) {
 			req.user.reads++;
 			_serverJs2['default']._update('users', { '_id': req.user._id }, req.user);
 			res.status(resp.code).json(resp.message);

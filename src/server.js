@@ -7,8 +7,8 @@ import utilities from './utilities.js';
 import express from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
-import { ObjectID } from "mongodb";
-
+import { ObjectID } from 'mongodb';
+import path from 'path';
 
 //routers
 import auth from './routes/auth.js';
@@ -21,7 +21,7 @@ var app = express();
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/views')
 app.use(express.static('public'));
-
+app.use('/bower_components', express.static(path.join(__dirname, '../bower_components')));
 //load the database
 var Mongo = new MongoClient();
 export default Mongo;
