@@ -4,6 +4,8 @@
  import collectionUtil from './collectionUtil.js';
  import _ from "underscore";
  import { MongoClient as Mongo} from "mongodb";
+ import { ObjectID } from "mongodb";
+
 
  export class MongoClient extends Mongo {
 
@@ -49,6 +51,51 @@
  		);
  		return promise;
  	}
+
+  batchOperation(collectionName,array) {
+    var promise = new Promise(
+      (resolve, reject) => {
+        this._loadCollection(collectionName).then((collection) => {
+          var batch = collection.initializeUnorderedBulkOp();
+          _.each(array,(operation) => {
+            //convert back to ObjectIds
+            if (operation.method !== 'insert') {
+              operation.document._id = new ObjectID(operation.document._id);
+            }
+            switch (operation.method) {
+              case "delete":
+                batch.find(operation.document).remove();
+                break;
+              case "insert":
+                console.log("INSERT");
+                batch.insert(operation.document);
+                break;
+              case "update":
+                batch.find(operation.document).upsert().updateOne({$set: operation.document});
+                break;
+              case "upsert":
+                batch.find(operation.document).updateOne({$set: operation.document});
+                break;
+              default:
+                console.log("opperation not found");
+            }
+          })
+          batch.execute(function(err, result) {
+            if (err) {
+              reject(err);
+            } else {
+            resolve({"bulkresults":result.ok});
+            }
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          reject(err);
+        })
+      }
+    );
+    return promise;
+  }
 
   _save(name,obj) {
     var promise = new Promise(

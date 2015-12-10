@@ -77,12 +77,57 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_save',
-    value: function _save(name, obj) {
+    key: 'batchOperation',
+    value: function batchOperation(collectionName, array) {
       var _this4 = this;
 
       var promise = new Promise(function (resolve, reject) {
-        _this4.db.collection(name).insertOne(obj, function (err, resp) {
+        _this4._loadCollection(collectionName).then(function (collection) {
+          var batch = collection.initializeUnorderedBulkOp();
+          _underscore2['default'].each(array, function (operation) {
+            //convert back to ObjectIds
+            if (operation.method !== 'insert') {
+              operation.document._id = new _mongodb.ObjectID(operation.document._id);
+            }
+            switch (operation.method) {
+              case "delete":
+                batch.find(operation.document).remove();
+                break;
+              case "insert":
+                console.log("INSERT");
+                batch.insert(operation.document);
+                break;
+              case "update":
+                batch.find(operation.document).upsert().updateOne({ $set: operation.document });
+                break;
+              case "upsert":
+                batch.find(operation.document).updateOne({ $set: operation.document });
+                break;
+              default:
+                console.log("opperation not found");
+            }
+          });
+          batch.execute(function (err, result) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve({ "bulkresults": result.ok });
+            }
+          });
+        })['catch'](function (err) {
+          console.log(err);
+          reject(err);
+        });
+      });
+      return promise;
+    }
+  }, {
+    key: '_save',
+    value: function _save(name, obj) {
+      var _this5 = this;
+
+      var promise = new Promise(function (resolve, reject) {
+        _this5.db.collection(name).insertOne(obj, function (err, resp) {
           //check for duplicate entry
           if (err !== null) {
             reject({ code: 400, message: "looks like that email is already taken" });
@@ -96,10 +141,10 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_get',
     value: function _get(collectionName, query) {
-      var _this5 = this;
+      var _this6 = this;
 
       var promise = new Promise(function (resolve, reject) {
-        _this5.db.collection(collectionName).find(query, function (err, resp) {
+        _this6.db.collection(collectionName).find(query, function (err, resp) {
           //check for duplicate entry
           if (err !== null) {
             reject({ code: 500, message: "error querying " + query });
@@ -119,10 +164,10 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_delete',
     value: function _delete(collectionName, query) {
-      var _this6 = this;
+      var _this7 = this;
 
       var promise = new Promise(function (resolve, reject) {
-        _this6.db.collection(collectionName).remove(query, { justOne: true }, function (err, resp) {
+        _this7.db.collection(collectionName).remove(query, { justOne: true }, function (err, resp) {
 
           if (err !== null) {
             reject({ code: 500, message: "error deleting " + query });
@@ -138,10 +183,10 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_update',
     value: function _update(name, query, obj) {
-      var _this7 = this;
+      var _this8 = this;
 
       var promise = new Promise(function (resolve, reject) {
-        _this7.db.collection(name).updateOne(query, { $set: obj }, function (err, resp) {
+        _this8.db.collection(name).updateOne(query, { $set: obj }, function (err, resp) {
           //check for duplicate entry
           if (err !== null) {
             reject({ code: 400, message: err });
@@ -155,11 +200,11 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_getData',
     value: function _getData(path, id, skipVal, sortVal, limitVal) {
-      var _this8 = this;
+      var _this9 = this;
 
       var promise = new Promise(function (resolve, reject) {
 
-        _this8._propagateQuery(path).then(function (resolveObj) {
+        _this9._propagateQuery(path).then(function (resolveObj) {
           var collection = resolveObj.collection;
           var mongoQuery = resolveObj.mongoQuery;
           //only load data created by the user
@@ -202,11 +247,11 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_delData',
     value: function _delData(path, id) {
-      var _this9 = this;
+      var _this10 = this;
 
       var promise = new Promise(function (resolve, reject) {
 
-        _this9._propagateQuery(path, id).then(function (resolveObj) {
+        _this10._propagateQuery(path, id).then(function (resolveObj) {
           var collection = resolveObj.collection;
           var mongoQuery = resolveObj.mongoQuery;
           mongoQuery['heypi_id'] = id;
@@ -241,7 +286,7 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_propagateQuery',
     value: function _propagateQuery(path, id) {
-      var _this10 = this;
+      var _this11 = this;
 
       var pathArray = [];
       if (path.length % 2 === 1) path.push("");
@@ -268,7 +313,7 @@ var MongoClient = (function (_Mongo) {
             mongoQuery = _underscore2['default'].extend(mongoQuery, result.fkQuery);
 
             var promise = new Promise(function (resolve, reject) {
-              _this10._loadCollection(collectionName).then(function (collection) {
+              _this11._loadCollection(collectionName).then(function (collection) {
                 if (index !== pathArray.length - 1) {
                   var cursor = collection.find(mongoQuery);
 
@@ -324,13 +369,13 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_updateData',
     value: function _updateData(path, data, id) {
-      var _this11 = this;
+      var _this12 = this;
 
       var collectionName = path[0];
 
       var promise = new Promise(function (resolve, reject) {
 
-        _this11._loadCollection(collectionName).then(function (collection) {
+        _this12._loadCollection(collectionName).then(function (collection) {
           return updateDataHelper(collection, id);
         }).then(function (response) {
 

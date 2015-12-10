@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import { ObjectID } from "mongodb";
 import guests from './guests.js';
 import utilities from '../utilities.js';
+import _ from 'underscore';
 var router = express.Router();
 
 //assigns the users users or "guests" an api key and password.
@@ -12,13 +13,47 @@ router.use('/guests',guests);
 
 router.get('/collections', (req,res) => {
 	Mongo.collectionNames().then((resp) => {
-		res.status(resp.code).json(resp.message);
+		//remove system collections like 'schemas' & 'system.indexes'
+		var collections = [];
+		_.each(resp.message, (doc) => {
+			if(doc.name !== 'schemas' && doc.name !== 'system.indexes') {
+				collections.push(doc)
+			}
+		});
+		res.status(resp.code).json(collections);
 	})
 	.catch((err) => {
 		console.log(err);
 		res.json("error pulling collection names");
 	})
 })
+
+router.post('/batch/:collection', (req,res) => {
+		Mongo.batchOperation(req.params.collection,req.body.operations).then((resp) => {
+			res.json(resp);
+		})
+		.catch((err) => {
+			res.json(err);
+		})
+})
+
+router.post('/batch_insert/:collection', (req,res) => {
+		var docs = [];
+
+		_.each(req.body, (obj) => {
+			obj['heypi_id'] = req.user._id;
+			docs.push({ method: "insert", document: obj })
+		});
+
+		Mongo.batchOperation(req.params.collection,docs).then((resp) => {
+			res.json(resp);
+		})
+		.catch((err) => {
+			res.json(err);
+		})
+})
+
+
 
 router.get('/*', (req, res) => {
 
@@ -52,10 +87,14 @@ router.get('/*', (req, res) => {
 
 router.post('/*', (req,res) => {
 		Mongo._saveData(req.strip_path, req.body, req.user._id).then((resp) => {
+
       req.user.writes++;
       req.user.numDocs++;
-      Mongo._update('users',{'_id':req.user._id}, req.user);
-			res.json(resp.message);
+
+      Mongo._update("users",{"_id":req.user._id}, req.user);
+			var loc = "/" + req.strip_path + "/" +resp.message.id;
+
+			res.status(201).location(loc).json(resp.message)
 		})
 		.catch((err) => {
 			res.status(err.code).json("error saving data");

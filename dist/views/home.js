@@ -19,6 +19,10 @@ app.config(function($stateProvider,$mdThemingProvider) {
 
         $scope.collectionName = $stateParams.name
         $scope.selected = [];
+        $scope.docsToAdd = [];
+        $scope.modelObject = {};
+        $scope.blankObj = {};
+
         function getData(query) {
           var http = $http({
             method: 'GET',
@@ -36,10 +40,40 @@ app.config(function($stateProvider,$mdThemingProvider) {
           string: ''
         };
 
-        function success(docs) {
-          console.log(docs);
-           $scope.docs = docs;
-         }
+        function createModelObject() {
+          //clean clone of object so we can reference it to add new objects
+          var clone = _.clone($scope.docs.documents[$scope.docs.documents - 1]);
+          $scope.blankObj = _.omit(clone, _.keys(clone));
+          $scope.modelObject = _.mapObject($scope.modelObject, function(val, key) {
+            return val = text;
+          });
+        }
+
+        $scope.addItem = function() {
+          $scope.docs.documents.splice(0,$scope.blankObj);
+          $scope.docsToAdd.push(angular.copy($scope.blankObj));
+          console.log($scope.docsToAdd);
+          $scope.editMode = true;
+        }
+
+        $scope.batch = function(method) {
+          //remove hashkeys
+          var docs = JSON.parse(angular.toJson($scope.selected)),
+              batchArray = [];
+
+          _.each(docs, function(doc){
+            batchArray.push({"method":method,"document":doc})
+          });
+
+          var http = $http({
+            method: "POST",
+            url: '/api/batch/' + $stateParams.name,
+            headers: { "x-access-token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFuZHJldy5hcm1lbmFudGVAZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkVmoyb1lSYXFZUkR4aDJjQVN4UU82dWxwLmJTazcyNldPblI3NzJ0dEkudGF1RU51Ri55bXkiLCJjb25maXJtZWQiOmZhbHNlLCJudW1Db2xzIjowLCJudW1Eb2NzIjowLCJpc0d1ZXN0IjpmYWxzZSwidXNlcnNJZCI6bnVsbCwid3JpdGVzIjowLCJyZWFkcyI6MCwiY3JlYXRlZE9uIjoiMjAxNS0xMS0yNVQwNDo0MjozNC41OTVaIiwiX2lkIjoiNTY1NTNjNTZmNGMwNzgyNzc2OTBiYTFhIiwiaWF0IjoxNDQ4NDI2NTgyLCJleHAiOjE0NTAxNTQ1ODJ9.GFEk2S9qUNzdKcHjOvUU2ThRm25J9h2CDvcLgjJclJI"},
+            data: { "operations": batchArray }
+          }).then(function()  {
+            $scope.docs.documents = _.difference($scope.docs.documents,$scope.selected);
+          });
+        }
 
         var buildQueryString = function() {
           //order
@@ -57,14 +91,16 @@ app.config(function($stateProvider,$mdThemingProvider) {
           var limit = 'limit=' + $scope.query.limit,
               skip  = '&skip=' + ($scope.query.page - 1) * $scope.query.limit;
           $scope.query.string = '?' + order + limit + skip;
-          console.log($scope.query.string);
         }
 
         //load initial data
         buildQueryString()
-        getData($scope.query.string).then(function(docs) {
-          $scope.docs = docs.data;
-          $scope.query.order = Object.keys(docs.data[0])[1];
+
+        getData($scope.query.string).then(function(resp) {
+          $scope.docs = resp.data;
+          $scope.headers = _.keys(resp.data.documents[0]);
+          $scope.query.order = _.keys($scope.docs.documents[0])[1];
+          createModelObject();
         })
 
         $scope.search = function (predicate) {
@@ -73,7 +109,7 @@ app.config(function($stateProvider,$mdThemingProvider) {
         };
 
         $scope.onOrderChange = function (order) {
-          $scope.docs.reverse();
+          $scope.docs.documents.reverse();
           buildQueryString();
         };
 

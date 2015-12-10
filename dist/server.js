@@ -108,8 +108,7 @@ var confirmed = function confirmed(req, res, next) {
 };
 
 var urlStrip = function urlStrip(req, res, next) {
-	var path = _utilitiesJs2['default'].stripPath(req.url);
-	req.strip_path = path;
+	req.strip_path = _utilitiesJs2['default'].stripPath(req.url);
 	next();
 };
 

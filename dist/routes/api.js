@@ -28,6 +28,10 @@ var _utilitiesJs = require('../utilities.js');
 
 var _utilitiesJs2 = _interopRequireDefault(_utilitiesJs);
 
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
 var router = _express2['default'].Router();
 
 //assigns the users users or "guests" an api key and password.
@@ -36,10 +40,40 @@ router.use('/guests', _guestsJs2['default']);
 
 router.get('/collections', function (req, res) {
 	_serverJs2['default'].collectionNames().then(function (resp) {
-		res.status(resp.code).json(resp.message);
+		//remove system collections like 'schemas' & 'system.indexes'
+		var collections = [];
+		_underscore2['default'].each(resp.message, function (doc) {
+			if (doc.name !== 'schemas' && doc.name !== 'system.indexes') {
+				collections.push(doc);
+			}
+		});
+		res.status(resp.code).json(collections);
 	})['catch'](function (err) {
 		console.log(err);
 		res.json("error pulling collection names");
+	});
+});
+
+router.post('/batch/:collection', function (req, res) {
+	_serverJs2['default'].batchOperation(req.params.collection, req.body.operations).then(function (resp) {
+		res.json(resp);
+	})['catch'](function (err) {
+		res.json(err);
+	});
+});
+
+router.post('/batch_insert/:collection', function (req, res) {
+	var docs = [];
+
+	_underscore2['default'].each(req.body, function (obj) {
+		obj['heypi_id'] = req.user._id;
+		docs.push({ method: "insert", document: obj });
+	});
+
+	_serverJs2['default'].batchOperation(req.params.collection, docs).then(function (resp) {
+		res.json(resp);
+	})['catch'](function (err) {
+		res.json(err);
 	});
 });
 
@@ -73,10 +107,14 @@ router.get('/*', function (req, res) {
 
 router.post('/*', function (req, res) {
 	_serverJs2['default']._saveData(req.strip_path, req.body, req.user._id).then(function (resp) {
+
 		req.user.writes++;
 		req.user.numDocs++;
-		_serverJs2['default']._update('users', { '_id': req.user._id }, req.user);
-		res.json(resp.message);
+
+		_serverJs2['default']._update("users", { "_id": req.user._id }, req.user);
+		var loc = "/" + req.strip_path + "/" + resp.message.id;
+
+		res.status(201).location(loc).json(resp.message);
 	})['catch'](function (err) {
 		res.status(err.code).json("error saving data");
 	});

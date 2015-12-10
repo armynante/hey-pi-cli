@@ -2,11 +2,11 @@ md-content(layout="column" flex, ui-view="").md-padding.md-raised
   //hack to stop a ng-repeat error with the ui-router
   //https://github.com/angular-ui/ui-router/issues/1661#issuecomment-84114825
   div 
-    md-toolbar.md-warn
+    md-toolbar
       div.md-toolbar-tools
         h2.md-flex collection name
 
-    md-card(ng-repeat="collection in collections").collection-card
+    md-card(ng-repeat="collection in collections").collection-card.md-padding
       md-card-title
         md-card-title-text
           span.md-headline {{collection.name}}

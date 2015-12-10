@@ -7,11 +7,13 @@ html(lang="en",ng-app="heypi")
     title= message
     link(href='/bower_components/angular-material/angular-material.min.css',rel='stylesheet')
     link(href='/bower_components/angular-material-data-table/dist/md-data-table.min.css',rel='stylesheet')
+    link(href='https://fonts.googleapis.com/icon?family=Material+Icons',rel='stylesheet')
     script(src='/bower_components/angular/angular.min.js')
     script(src='/bower_components/angular-animate/angular-animate.min.js')
     script(src='/bower_components/angular-aria/angular-aria.min.js')
     script(src='/bower_components/angular-ui-router/release/angular-ui-router.min.js')
     script(src='/bower_components/angular-material/angular-material.min.js')
+    script(src='/bower_components/underscore/underscore-min.js')
     script(src='/bower_components/angular-material-data-table/dist/md-data-table.min.js')
     style
       include home.css
@@ -23,14 +25,14 @@ html(lang="en",ng-app="heypi")
     md-toolbar(layout="row")
       div.md-toolbar-tools
         md-button(ng-click="vm.toggleSidenav('left')", hide-gt-sm class="md-icon-button")
-          md-icon(aria-label="Menu", md-svg-icon="https://s3-us-west-2.amazonaws.com/s.cdpn.io/68133/menu.svg")
+          md-icon(md-font-set="material-icons") menu
         h1 HeyPI
     div(flex, layout="row")
       md-sidenav(layout='column',md-component-id="left",md-is-locked-open="$mdMedia('gt-sm')").md-sidenav-left.md-whiteframe-4dp
         md-button(ui-sref="collections").md-accent.md-raised collections
-        md-button(ui-sref="docs").md-accent.md-raised docs
-        md-button.md-accent.md-raised users
-        md-button.md-accent.md-raised usage
+        md-button(ui-sref="docs").md-accent.md-raised documentaion
+        md-button.md-accent.md-raised user management
+        md-button.md-accent.md-raised usage stats
       div(layout="column", flex, id="content" ui-view="")
       
         
