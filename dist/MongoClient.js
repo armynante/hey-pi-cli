@@ -45,11 +45,19 @@ var MongoClient = (function (_Mongo) {
 
       var promise = new Promise(function (resolve, reject) {
         _this2.db.listCollections().toArray(function (err, collections) {
+
           if (err) {
             console.log(err);
-            reject({ code: 500, message: err });
+            reject({
+              code: 500,
+              message: err
+            });
           }
-          resolve({ code: 200, message: collections });
+
+          resolve({
+            code: 200,
+            message: collections
+          });
         });
       });
       return promise;
@@ -59,7 +67,9 @@ var MongoClient = (function (_Mongo) {
     value: function _dbConnect(url) {
       var _this = this;
       _mongodb.MongoClient.connect(url, function (err, db) {
+
         if (err) throw err;
+
         db.collection('users').ensureIndex({ "email": 1 }, { unique: true });
         _this.db = db;
       });
@@ -71,7 +81,12 @@ var MongoClient = (function (_Mongo) {
 
       var promise = new Promise(function (resolve, reject) {
         _this3.db.collection(name, function (err, collection) {
-          if (err) reject(err);else resolve(collection);
+
+          if (err) {
+            reject(err);
+          } else {
+            resolve(collection);
+          }
         });
       });
       return promise;
@@ -83,30 +98,42 @@ var MongoClient = (function (_Mongo) {
 
       var promise = new Promise(function (resolve, reject) {
         _this4._loadCollection(collectionName).then(function (collection) {
+
           var batch = collection.initializeUnorderedBulkOp();
           _underscore2['default'].each(array, function (operation) {
+
             //convert back to ObjectIds
             if (operation.method !== 'insert') {
               operation.document._id = new _mongodb.ObjectID(operation.document._id);
             }
+
             switch (operation.method) {
+
               case "delete":
                 batch.find(operation.document).remove();
                 break;
+
               case "insert":
-                console.log("INSERT");
                 batch.insert(operation.document);
                 break;
+
               case "update":
-                batch.find(operation.document).upsert().updateOne({ $set: operation.document });
+                batch.find(operation.document).upsert().updateOne({
+                  $set: operation.document
+                });
                 break;
+
               case "upsert":
-                batch.find(operation.document).updateOne({ $set: operation.document });
+                batch.find(operation.document).updateOne({
+                  $set: operation.document
+                });
                 break;
+
               default:
                 console.log("opperation not found");
             }
           });
+
           batch.execute(function (err, result) {
             if (err) {
               reject(err);
@@ -130,7 +157,10 @@ var MongoClient = (function (_Mongo) {
         _this5.db.collection(name).insertOne(obj, function (err, resp) {
           //check for duplicate entry
           if (err !== null) {
-            reject({ code: 400, message: "looks like that email is already taken" });
+            reject({
+              code: 400,
+              message: "looks like that email is already taken"
+            });
           } else {
             resolve(resp.ops[0]);
           }
@@ -145,10 +175,12 @@ var MongoClient = (function (_Mongo) {
 
       var promise = new Promise(function (resolve, reject) {
         _this6.db.collection(collectionName).find(query, function (err, resp) {
+
           //check for duplicate entry
           if (err !== null) {
             reject({ code: 500, message: "error querying " + query });
           } else {
+
             resp.toArray(function (err, docs) {
               if (err !== null) {
                 reject(err);
@@ -167,12 +199,20 @@ var MongoClient = (function (_Mongo) {
       var _this7 = this;
 
       var promise = new Promise(function (resolve, reject) {
-        _this7.db.collection(collectionName).remove(query, { justOne: true }, function (err, resp) {
+        _this7.db.collection(collectionName).remove(query, {
+          justOne: true
+        }, function (err, resp) {
 
           if (err !== null) {
-            reject({ code: 500, message: "error deleting " + query });
+            reject({
+              code: 500,
+              message: "error deleting " + query
+            });
           } else {
-            resolve({ code: 200, message: resp.result.n + " document deleted" });
+            resolve({
+              code: 200,
+              message: resp.result.n + " document deleted"
+            });
           }
         });
       });
@@ -187,6 +227,7 @@ var MongoClient = (function (_Mongo) {
 
       var promise = new Promise(function (resolve, reject) {
         _this8.db.collection(name).updateOne(query, { $set: obj }, function (err, resp) {
+
           //check for duplicate entry
           if (err !== null) {
             reject({ code: 400, message: err });
@@ -203,15 +244,17 @@ var MongoClient = (function (_Mongo) {
       var _this9 = this;
 
       var promise = new Promise(function (resolve, reject) {
-
         _this9._propagateQuery(path).then(function (resolveObj) {
-          var collection = resolveObj.collection;
-          var mongoQuery = resolveObj.mongoQuery;
+
+          var collection = resolveObj.collection,
+              mongoQuery = resolveObj.mongoQuery;
+
           //only load data created by the user
           mongoQuery['heypi_id'] = id;
           console.log(limitVal);
           collection.find(mongoQuery, { heypi_id: 0 }).sort(sortVal).limit(limitVal).skip(skipVal).toArray(function (err, docs) {
-            //FIXME: What the fuck is this? I know its neccisary for something but forgot
+            //FIXME: What the fuck is this? I know it's important but forgot
+            // the reason
             var docs = docs;
 
             if (err) reject({
@@ -220,20 +263,21 @@ var MongoClient = (function (_Mongo) {
             });
 
             collection.count(function (err, count) {
-              if (err) reject({
-                "code": 500,
-                "message": err
-              });
+              if (err) reject({ "code": 500, "message": err });
 
               var responseData = {
                 "code": 200,
-                "message": { "documents": docs, "total": count }
+                "message": {
+                  "documents": docs,
+                  "total": count
+                }
               };
 
               resolve(responseData);
             });
           });
         }, function (err) {
+
           var responseData = {
             "code": 500,
             "message": err
@@ -298,10 +342,9 @@ var MongoClient = (function (_Mongo) {
         var chain = pathArray.reduce(function (previous, item, index, array) {
 
           return previous.then(function (result) {
-            var collectionName = item[0];
-            var query = item[1];
-
-            var mongoQuery = _utilitiesJs2['default'].parseQuery(query);
+            var collectionName = item[0],
+                query = item[1],
+                mongoQuery = _utilitiesJs2['default'].parseQuery(query);
 
             if (mongoQuery === null) {
               reject("bad request");
@@ -309,15 +352,16 @@ var MongoClient = (function (_Mongo) {
 
             //push id into query
             mongoQuery['heypi_id'] = id;
-
             mongoQuery = _underscore2['default'].extend(mongoQuery, result.fkQuery);
 
             var promise = new Promise(function (resolve, reject) {
               _this11._loadCollection(collectionName).then(function (collection) {
+
                 if (index !== pathArray.length - 1) {
                   var cursor = collection.find(mongoQuery);
 
                   cursor.toArray(function (err, docs) {
+
                     if (err) {
                       reject(err);
                     } else {
@@ -327,11 +371,11 @@ var MongoClient = (function (_Mongo) {
                         keys[i] = keys[i].toString();
                       };
 
-                      var fkFieldName = collectionName + "id";
-                      var fkQuery = {};
-                      fkQuery[fkFieldName] = {
-                        $in: keys
-                      };
+                      var fkFieldName = collectionName + "id",
+                          fkQuery = {};
+
+                      fkQuery[fkFieldName] = { $in: keys };
+
                       resolve({
                         doc: docs,
                         fkQuery: fkQuery
@@ -350,6 +394,7 @@ var MongoClient = (function (_Mongo) {
           });
         }, new Promise(function (resolve, reject) {
           //initial value given to reduce
+
           var result = {};
           result["fkQuery"] = {};
           resolve(result);
@@ -382,18 +427,17 @@ var MongoClient = (function (_Mongo) {
           var modifiedCount = response.result.modifiedCount;
 
           if (modifiedCount > 0) {
-
             var responseData = {
               "code": 200,
               "message": "Updated " + modifiedCount + " documents"
             };
           } else {
-
             var responseData = {
               "code": 204,
               "message": "No documents updated :("
             };
           }
+
           resolve(responseData);
         })['catch'](function (err) {
           reject(err);
@@ -404,7 +448,6 @@ var MongoClient = (function (_Mongo) {
 
       function updateDataHelper(collection, id) {
         // remove id field from obj
-
         var promise = new Promise(function (resolve, reject) {
 
           delete data["id"];
@@ -435,8 +478,8 @@ var MongoClient = (function (_Mongo) {
   }, {
     key: '_saveData',
     value: function _saveData(path, data, id) {
-      var _this = this;
-      var collectionName = path[0];
+      var _this = this,
+          collectionName = path[0];
 
       var promise = new Promise(function (resolve, reject) {
         _this._loadCollection(collectionName).then(function (collection) {
@@ -454,7 +497,7 @@ var MongoClient = (function (_Mongo) {
             "code": 500,
             "message": err.message
           };
-          console.log("response data is: " + responseData);
+
           resolve(responseData);
         });
       });
@@ -462,7 +505,6 @@ var MongoClient = (function (_Mongo) {
       return promise;
 
       function saveDataHelper(collection, id) {
-        console.log(data);
         data['heypi_id'] = id;
 
         if (path.length > 1) {
@@ -475,6 +517,7 @@ var MongoClient = (function (_Mongo) {
         if (path.length === 1) {
           var promise = new Promise(function (resolve, reject) {
             collection.insertOne(data, function (err, result) {
+
               if (err) {
                 reject(err);
               } else {
@@ -499,18 +542,20 @@ var MongoClient = (function (_Mongo) {
 
           return promise;
         } else if (path.length === 3) {
-          var collectionToAddTo = path[2];
-          var parentID;
+          var collectionToAddTo = path[2],
+              parentID;
 
           var promise = new Promise(function (resolve, reject) {
             _collectionUtilJs2['default'].findOne(collection, mongoQuery).then(function (doc) {
               parentID = doc._id.toString();
               return _this._loadCollection(collectionToAddTo);
             }).then(function (collectionToAddToObj) {
-              var obj = {};
-              var keyName = collectionName + "id";
+              var obj = {},
+                  keyName = collectionName + "id";
+
               obj[keyName] = parentID;
               data = _underscore2['default'].extend(data, obj);
+
               return _collectionUtilJs2['default'].insertOne(collectionToAddToObj, data);
             }).then(function (result) {
               resolve(result.ops[0]);
