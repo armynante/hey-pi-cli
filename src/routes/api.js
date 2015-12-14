@@ -15,11 +15,15 @@ router.get('/collections', (req,res) => {
 	Mongo.collectionNames().then((resp) => {
 		//remove system collections like 'schemas' & 'system.indexes'
 		var collections = [];
+
 		_.each(resp.message, (doc) => {
+
 			if(doc.name !== 'schemas' && doc.name !== 'system.indexes') {
 				collections.push(doc)
 			}
+
 		});
+
 		res.status(resp.code).json(collections);
 	})
 	.catch((err) => {
@@ -29,12 +33,19 @@ router.get('/collections', (req,res) => {
 })
 
 router.post('/batch/:collection', (req,res) => {
-		Mongo.batchOperation(req.params.collection,req.body.operations).then((resp) => {
-			res.json(resp);
-		})
-		.catch((err) => {
-			res.json(err);
-		})
+	_.map(req.body.operations, (obj) => {
+		if (obj.method === 'insert') {
+			obj.document['heypi_id'] = req.user._id
+		}
+	});
+
+	Mongo.batchOperation(req.params.collection,req.body.operations).then((resp) => {
+		res.json(resp);
+	})
+	.catch((err) => {
+		console.log(err);
+		res.json(err);
+	})
 })
 
 router.post('/batch_insert/:collection', (req,res) => {
@@ -44,7 +55,6 @@ router.post('/batch_insert/:collection', (req,res) => {
 			obj['heypi_id'] = req.user._id;
 			docs.push({ method: "insert", document: obj })
 		});
-
 		Mongo.batchOperation(req.params.collection,docs).then((resp) => {
 			res.json(resp);
 		})
@@ -72,9 +82,9 @@ router.get('/*', (req, res) => {
 
 
 	if(req.strip_path[0] !== undefined) {
- 	  Mongo._getData(req.strip_path, req.user._id, req.query.skip, req.query.sort, req.query.limit).then((resp) => {
+ 	  Mongo.getData(req.strip_path, req.user._id, req.query.skip, req.query.sort, req.query.limit).then((resp) => {
       req.user.reads++;
-      Mongo._update('users',{'_id':req.user._id}, req.user);
+      Mongo.update('users',{'_id':req.user._id}, req.user);
 			res.status(resp.code).json(resp.message);
 		})
 		.catch((err) => {
@@ -86,43 +96,42 @@ router.get('/*', (req, res) => {
 });
 
 router.post('/*', (req,res) => {
-		Mongo._saveData(req.strip_path, req.body, req.user._id).then((resp) => {
+	Mongo.saveData(req.strip_path, req.body, req.user._id).then((resp) => {
 
-      req.user.writes++;
-      req.user.numDocs++;
+    req.user.writes++;
+    req.user.numDocs++;
 
-      Mongo._update("users",{"_id":req.user._id}, req.user);
-			var loc = "/" + req.strip_path + "/" +resp.message.id;
+    Mongo.update("users",{"_id":req.user._id}, req.user);
+		var loc = "/" + req.strip_path + "/" +resp.message.id;
 
-			res.status(201).location(loc).json(resp.message)
-		})
-		.catch((err) => {
-			res.status(err.code).json("error saving data");
-		});
+		res.status(201).location(loc).json(resp.message)
 	})
+	.catch((err) => {
+		res.status(err.code).json("error saving data");
+	});
+})
 
 router.put('/*', (req,res) => {
-		Mongo._updateData(req.strip_path, req.body, req.user._id).then((resp) => {
-      req.user.writes++;
-      Mongo._update('users',{'_id':new ObjectID(req.user._id)}, req.user);
-			res.status(resp.code).json(resp.message);
-		})
-		.catch((err) => {
-			res.status(500).json(err.message);
-		});
+	Mongo.updateData(req.strip_path, req.body, req.user._id).then((resp) => {
+    req.user.writes++;
+    Mongo.update('users',{'_id':new ObjectID(req.user._id)}, req.user);
+		res.status(resp.code).json(resp.message);
 	})
+	.catch((err) => {
+		res.status(500).json(err.message);
+	});
+})
 
 router.delete('/*', (req,res) => {
-		Mongo._delData(req.strip_path, req.user._id).then((resp) => {
-      debugger;
-      req.user.writes += resp.docDelta;
-      req.user.numDocs -= resp.docDelta;
-      Mongo._update('users',{'_id':new ObjectID(req.user._id)}, req.user);
-			res.status(resp.code).json(resp.message);
-		})
-		.catch((err) => {
-			res.status(err.code).json("error updating data");
-		});
+	Mongo.delData(req.strip_path, req.user._id).then((resp) => {
+    req.user.writes += resp.docDelta;
+    req.user.numDocs -= resp.docDelta;
+    Mongo.update('users',{'_id':new ObjectID(req.user._id)}, req.user);
+		res.status(resp.code).json(resp.message);
+	})
+	.catch((err) => {
+		res.status(err.code).json("error updating data");
 	});
+});
 
 export default router

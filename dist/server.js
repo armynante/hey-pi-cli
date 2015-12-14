@@ -66,7 +66,7 @@ app.use('/bower_components', _express2['default']['static'](_path2['default'].jo
 var Mongo = new _MongoClientJs.MongoClient();
 exports['default'] = Mongo;
 
-Mongo._dbConnect(_configJs2['default'].mongoUrl);
+Mongo.dbConnect(_configJs2['default'].mongoUrl);
 
 //setiings
 app.use((0, _morgan2['default'])('dev')); //logging
@@ -81,7 +81,7 @@ var checkAuth = function checkAuth(req, res, next) {
 			if (err) {
 				res.status(401).json({ success: false, message: 'Failed to authenticate token.' });
 			} else {
-				Mongo._get('users', { '_id': new _mongodb.ObjectID(validUser._id) }).then(function (docs) {
+				Mongo.get('users', { '_id': new _mongodb.ObjectID(validUser._id) }).then(function (docs) {
 					if (docs.length > 0) {
 						req.user = docs[0];
 						next();

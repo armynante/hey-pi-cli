@@ -25,7 +25,7 @@ app.use('/bower_components', express.static(path.join(__dirname, '../bower_compo
 //load the database
 var Mongo = new MongoClient();
 export default Mongo;
-Mongo._dbConnect(config.mongoUrl);
+Mongo.dbConnect(config.mongoUrl);
 
 //setiings
 app.use(morgan('dev')); //logging
@@ -40,7 +40,7 @@ var checkAuth = function(req, res, next) {
 			if (err) {
 				res.status(401).json({ success: false, message: 'Failed to authenticate token.' });
 			} else {
-				Mongo._get('users',{'_id': new ObjectID(validUser._id)}).then((docs) => {
+				Mongo.get('users',{'_id': new ObjectID(validUser._id)}).then((docs) => {
 					if (docs.length > 0) {
 						req.user = docs[0]
 						next();

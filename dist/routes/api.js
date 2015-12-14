@@ -42,11 +42,14 @@ router.get('/collections', function (req, res) {
 	_serverJs2['default'].collectionNames().then(function (resp) {
 		//remove system collections like 'schemas' & 'system.indexes'
 		var collections = [];
+
 		_underscore2['default'].each(resp.message, function (doc) {
+
 			if (doc.name !== 'schemas' && doc.name !== 'system.indexes') {
 				collections.push(doc);
 			}
 		});
+
 		res.status(resp.code).json(collections);
 	})['catch'](function (err) {
 		console.log(err);
@@ -55,9 +58,16 @@ router.get('/collections', function (req, res) {
 });
 
 router.post('/batch/:collection', function (req, res) {
+	_underscore2['default'].map(req.body.operations, function (obj) {
+		if (obj.method === 'insert') {
+			obj.document['heypi_id'] = req.user._id;
+		}
+	});
+
 	_serverJs2['default'].batchOperation(req.params.collection, req.body.operations).then(function (resp) {
 		res.json(resp);
 	})['catch'](function (err) {
+		console.log(err);
 		res.json(err);
 	});
 });
@@ -69,7 +79,6 @@ router.post('/batch_insert/:collection', function (req, res) {
 		obj['heypi_id'] = req.user._id;
 		docs.push({ method: "insert", document: obj });
 	});
-
 	_serverJs2['default'].batchOperation(req.params.collection, docs).then(function (resp) {
 		res.json(resp);
 	})['catch'](function (err) {
@@ -93,9 +102,9 @@ router.get('/*', function (req, res) {
 	req.query.skip = parseInt(req.query.skip);
 
 	if (req.strip_path[0] !== undefined) {
-		_serverJs2['default']._getData(req.strip_path, req.user._id, req.query.skip, req.query.sort, req.query.limit).then(function (resp) {
+		_serverJs2['default'].getData(req.strip_path, req.user._id, req.query.skip, req.query.sort, req.query.limit).then(function (resp) {
 			req.user.reads++;
-			_serverJs2['default']._update('users', { '_id': req.user._id }, req.user);
+			_serverJs2['default'].update('users', { '_id': req.user._id }, req.user);
 			res.status(resp.code).json(resp.message);
 		})['catch'](function (err) {
 			res.json("error querying path " + req.strip_path);
@@ -106,12 +115,12 @@ router.get('/*', function (req, res) {
 });
 
 router.post('/*', function (req, res) {
-	_serverJs2['default']._saveData(req.strip_path, req.body, req.user._id).then(function (resp) {
+	_serverJs2['default'].saveData(req.strip_path, req.body, req.user._id).then(function (resp) {
 
 		req.user.writes++;
 		req.user.numDocs++;
 
-		_serverJs2['default']._update("users", { "_id": req.user._id }, req.user);
+		_serverJs2['default'].update("users", { "_id": req.user._id }, req.user);
 		var loc = "/" + req.strip_path + "/" + resp.message.id;
 
 		res.status(201).location(loc).json(resp.message);
@@ -121,9 +130,9 @@ router.post('/*', function (req, res) {
 });
 
 router.put('/*', function (req, res) {
-	_serverJs2['default']._updateData(req.strip_path, req.body, req.user._id).then(function (resp) {
+	_serverJs2['default'].updateData(req.strip_path, req.body, req.user._id).then(function (resp) {
 		req.user.writes++;
-		_serverJs2['default']._update('users', { '_id': new _mongodb.ObjectID(req.user._id) }, req.user);
+		_serverJs2['default'].update('users', { '_id': new _mongodb.ObjectID(req.user._id) }, req.user);
 		res.status(resp.code).json(resp.message);
 	})['catch'](function (err) {
 		res.status(500).json(err.message);
@@ -131,11 +140,10 @@ router.put('/*', function (req, res) {
 });
 
 router['delete']('/*', function (req, res) {
-	_serverJs2['default']._delData(req.strip_path, req.user._id).then(function (resp) {
-		debugger;
+	_serverJs2['default'].delData(req.strip_path, req.user._id).then(function (resp) {
 		req.user.writes += resp.docDelta;
 		req.user.numDocs -= resp.docDelta;
-		_serverJs2['default']._update('users', { '_id': new _mongodb.ObjectID(req.user._id) }, req.user);
+		_serverJs2['default'].update('users', { '_id': new _mongodb.ObjectID(req.user._id) }, req.user);
 		res.status(resp.code).json(resp.message);
 	})['catch'](function (err) {
 		res.status(err.code).json("error updating data");

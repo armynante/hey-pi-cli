@@ -63,8 +63,8 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_dbConnect',
-    value: function _dbConnect(url) {
+    key: 'dbConnect',
+    value: function dbConnect(url) {
       var _this = this;
       _mongodb.MongoClient.connect(url, function (err, db) {
 
@@ -75,8 +75,8 @@ var MongoClient = (function (_Mongo) {
       });
     }
   }, {
-    key: '_loadCollection',
-    value: function _loadCollection(name) {
+    key: 'loadCollection',
+    value: function loadCollection(name) {
       var _this3 = this;
 
       var promise = new Promise(function (resolve, reject) {
@@ -97,40 +97,50 @@ var MongoClient = (function (_Mongo) {
       var _this4 = this;
 
       var promise = new Promise(function (resolve, reject) {
-        _this4._loadCollection(collectionName).then(function (collection) {
+        _this4.loadCollection(collectionName).then(function (collection) {
 
           var batch = collection.initializeUnorderedBulkOp();
           _underscore2['default'].each(array, function (operation) {
 
             //convert back to ObjectIds
             if (operation.method !== 'insert') {
+              console.log(operation);
+              console.log('insert');
               operation.document._id = new _mongodb.ObjectID(operation.document._id);
             }
 
             switch (operation.method) {
 
               case "delete":
+                console.log('DELETING');
+                console.log(operation.document);
                 batch.find(operation.document).remove();
                 break;
 
               case "insert":
+                operation.document['created_at'] = Date.now();
                 batch.insert(operation.document);
                 break;
 
               case "update":
+                operation.document['updated_at'] = Date.now();
                 batch.find(operation.document).upsert().updateOne({
                   $set: operation.document
                 });
                 break;
 
               case "upsert":
+                if (operation.document['created_at'] === undefined) {
+                  operation.document['created_at'] = Date.now();
+                }
+                operation.document['updated_at'] = Date.now();
                 batch.find(operation.document).updateOne({
                   $set: operation.document
                 });
                 break;
 
               default:
-                console.log("opperation not found");
+                console.log(" not found");
             }
           });
 
@@ -149,8 +159,8 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_save',
-    value: function _save(name, obj) {
+    key: 'save',
+    value: function save(name, obj) {
       var _this5 = this;
 
       var promise = new Promise(function (resolve, reject) {
@@ -169,8 +179,8 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_get',
-    value: function _get(collectionName, query) {
+    key: 'get',
+    value: function get(collectionName, query) {
       var _this6 = this;
 
       var promise = new Promise(function (resolve, reject) {
@@ -194,7 +204,7 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_delete',
+    key: 'delete',
     value: function _delete(collectionName, query) {
       var _this7 = this;
 
@@ -221,10 +231,11 @@ var MongoClient = (function (_Mongo) {
 
     //simple update for admin functions
   }, {
-    key: '_update',
-    value: function _update(name, query, obj) {
+    key: 'update',
+    value: function update(name, query, obj) {
       var _this8 = this;
 
+      obj['updated_at'] = Date.now();
       var promise = new Promise(function (resolve, reject) {
         _this8.db.collection(name).updateOne(query, { $set: obj }, function (err, resp) {
 
@@ -239,22 +250,20 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_getData',
-    value: function _getData(path, id, skipVal, sortVal, limitVal) {
+    key: 'getData',
+    value: function getData(path, id, skipVal, sortVal, limitVal) {
       var _this9 = this;
 
       var promise = new Promise(function (resolve, reject) {
-        _this9._propagateQuery(path).then(function (resolveObj) {
+        _this9.propagateQuery(path).then(function (resolveObj) {
 
           var collection = resolveObj.collection,
               mongoQuery = resolveObj.mongoQuery;
 
           //only load data created by the user
           mongoQuery['heypi_id'] = id;
-          console.log(limitVal);
           collection.find(mongoQuery, { heypi_id: 0 }).sort(sortVal).limit(limitVal).skip(skipVal).toArray(function (err, docs) {
-            //FIXME: What the fuck is this? I know it's important but forgot
-            // the reason
+
             var docs = docs;
 
             if (err) reject({
@@ -289,13 +298,13 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_delData',
-    value: function _delData(path, id) {
+    key: 'delData',
+    value: function delData(path, id) {
       var _this10 = this;
 
       var promise = new Promise(function (resolve, reject) {
 
-        _this10._propagateQuery(path, id).then(function (resolveObj) {
+        _this10.propagateQuery(path, id).then(function (resolveObj) {
           var collection = resolveObj.collection;
           var mongoQuery = resolveObj.mongoQuery;
           mongoQuery['heypi_id'] = id;
@@ -328,8 +337,8 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_propagateQuery',
-    value: function _propagateQuery(path, id) {
+    key: 'propagateQuery',
+    value: function propagateQuery(path, id) {
       var _this11 = this;
 
       var pathArray = [];
@@ -355,7 +364,7 @@ var MongoClient = (function (_Mongo) {
             mongoQuery = _underscore2['default'].extend(mongoQuery, result.fkQuery);
 
             var promise = new Promise(function (resolve, reject) {
-              _this11._loadCollection(collectionName).then(function (collection) {
+              _this11.loadCollection(collectionName).then(function (collection) {
 
                 if (index !== pathArray.length - 1) {
                   var cursor = collection.find(mongoQuery);
@@ -412,15 +421,15 @@ var MongoClient = (function (_Mongo) {
       return promise;
     }
   }, {
-    key: '_updateData',
-    value: function _updateData(path, data, id) {
+    key: 'updateData',
+    value: function updateData(path, data, id) {
       var _this12 = this;
 
       var collectionName = path[0];
 
       var promise = new Promise(function (resolve, reject) {
 
-        _this12._loadCollection(collectionName).then(function (collection) {
+        _this12.loadCollection(collectionName).then(function (collection) {
           return updateDataHelper(collection, id);
         }).then(function (response) {
 
@@ -476,13 +485,13 @@ var MongoClient = (function (_Mongo) {
       }
     }
   }, {
-    key: '_saveData',
-    value: function _saveData(path, data, id) {
+    key: 'saveData',
+    value: function saveData(path, data, id) {
       var _this = this,
           collectionName = path[0];
 
       var promise = new Promise(function (resolve, reject) {
-        _this._loadCollection(collectionName).then(function (collection) {
+        _this.loadCollection(collectionName).then(function (collection) {
           return saveDataHelper(collection, id);
         }).then(function (docs) {
           docs = _utilitiesJs2['default'].sanitizeId(docs);
@@ -506,7 +515,7 @@ var MongoClient = (function (_Mongo) {
 
       function saveDataHelper(collection, id) {
         data['heypi_id'] = id;
-
+        data['created_at'] = Date.now();
         if (path.length > 1) {
           var mongoQuery = _utilitiesJs2['default'].parseQuery(path[1]);
           if (mongoQuery !== null) {
@@ -548,7 +557,7 @@ var MongoClient = (function (_Mongo) {
           var promise = new Promise(function (resolve, reject) {
             _collectionUtilJs2['default'].findOne(collection, mongoQuery).then(function (doc) {
               parentID = doc._id.toString();
-              return _this._loadCollection(collectionToAddTo);
+              return _this.loadCollection(collectionToAddTo);
             }).then(function (collectionToAddToObj) {
               var obj = {},
                   keyName = collectionName + "id";

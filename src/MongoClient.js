@@ -39,7 +39,7 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _dbConnect(url) {
+  dbConnect(url) {
     var _this = this;
     Mongo.connect(url, function (err, db) {
 
@@ -51,7 +51,7 @@ export class MongoClient extends Mongo {
       });
   }
 
-  _loadCollection(name) {
+  loadCollection(name) {
     var promise = new Promise(
       (resolve, reject) => {
         this.db.collection(name, (err, collection) => {
@@ -72,45 +72,54 @@ export class MongoClient extends Mongo {
   batchOperation(collectionName, array) {
     var promise = new Promise(
       (resolve, reject) => {
-        this._loadCollection(collectionName)
+        this.loadCollection(collectionName)
           .then((collection) => {
 
             var batch = collection.initializeUnorderedBulkOp();
             _.each(array, (operation) => {
 
-            //convert back to ObjectIds
-            if (operation.method !== 'insert') {
-              operation.document._id = new ObjectID(operation.document._id);
-            }
+              //convert back to ObjectIds
+              if (operation.method !== 'insert') {
+                console.log(operation);
+                console.log('insert');
+                operation.document._id = new ObjectID(operation.document._id);
+              }
 
-            switch (operation.method) {
+              switch (operation.method) {
 
-              case "delete":
-                batch.find(operation.document)
-                  .remove();
-                break;
+                case "delete":
+                  console.log('DELETING');
+                  console.log(operation.document);
+                  batch.find(operation.document).remove();
+                  break;
 
-              case "insert":
-                batch.insert(operation.document);
-                break;
+                case "insert":
+                  operation.document['created_at'] = Date.now();
+                  batch.insert(operation.document);
+                  break;
 
-              case "update":
-                batch.find(operation.document)
-                  .upsert()
-                  .updateOne({
-                    $set: operation.document
-                  });
-                break;
+                case "update":
+                  operation.document['updated_at'] = Date.now();
+                  batch.find(operation.document)
+                    .upsert()
+                    .updateOne({
+                      $set: operation.document
+                    });
+                  break;
 
-              case "upsert":
-                batch.find(operation.document)
-                  .updateOne({
-                    $set: operation.document
-                  });
-                break;
+                case "upsert":
+                  if (operation.document['created_at'] === undefined) {
+                    operation.document['created_at'] = Date.now();
+                  }
+                  operation.document['updated_at'] = Date.now();
+                  batch.find(operation.document)
+                    .updateOne({
+                      $set: operation.document
+                    });
+                  break;
 
-              default:
-                console.log("opperation not found");
+                default:
+                  console.log(" not found");
             }
           })
 
@@ -131,7 +140,7 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _save(name, obj) {
+  save(name, obj) {
     var promise = new Promise(
       (resolve, reject) => {
         this.db.collection(name)
@@ -151,7 +160,7 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _get(collectionName, query) {
+  get(collectionName, query) {
     var promise = new Promise(
       (resolve, reject) => {
         this.db.collection(collectionName)
@@ -179,7 +188,7 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _delete(collectionName, query) {
+  delete(collectionName, query) {
     var promise = new Promise(
       (resolve, reject) => {
         this.db.collection(collectionName)
@@ -207,7 +216,8 @@ export class MongoClient extends Mongo {
 
 
   //simple update for admin functions
-  _update(name, query, obj) {
+  update(name, query, obj) {
+    obj['updated_at'] = Date.now();
     var promise = new Promise(
       (resolve, reject) => {
         this.db.collection(name)
@@ -226,9 +236,9 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _getData(path, id, skipVal, sortVal, limitVal) {
+  getData(path, id, skipVal, sortVal, limitVal) {
     var promise = new Promise((resolve, reject) => {
-      this._propagateQuery(path)
+      this.propagateQuery(path)
         .then((resolveObj) => {
 
           var collection = resolveObj.collection,
@@ -236,14 +246,12 @@ export class MongoClient extends Mongo {
 
           //only load data created by the user
           mongoQuery['heypi_id'] = id;
-          console.log(limitVal);
           collection.find(mongoQuery, { heypi_id: 0 })
           .sort(sortVal)
           .limit(limitVal)
           .skip(skipVal)
           .toArray((err, docs) => {
-            //FIXME: What the fuck is this? I know it's important but forgot
-            // the reason
+
             var docs = (docs);
 
             if (err) reject({
@@ -279,11 +287,11 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _delData(path, id) {
+  delData(path, id) {
 
     var promise = new Promise((resolve, reject) => {
 
-      this._propagateQuery(path, id)
+      this.propagateQuery(path, id)
       .then((resolveObj) => {
         var collection = resolveObj.collection;
         var mongoQuery = resolveObj.mongoQuery;
@@ -317,7 +325,7 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _propagateQuery(path, id) {
+  propagateQuery(path, id) {
     var pathArray = [];
     if (path.length % 2 === 1) path.push("");
     var promise = new Promise(
@@ -343,7 +351,7 @@ export class MongoClient extends Mongo {
 
             var promise = new Promise(
               (resolve, reject) => {
-                this._loadCollection(collectionName)
+                this.loadCollection(collectionName)
                 .then((collection) => {
 
                   if (index !== (pathArray.length - 1)) {
@@ -403,14 +411,14 @@ export class MongoClient extends Mongo {
     return promise;
   }
 
-  _updateData(path, data, id) {
+  updateData(path, data, id) {
 
     var collectionName = path[0];
 
     var promise = new Promise(
       (resolve, reject) => {
 
-        this._loadCollection(collectionName)
+        this.loadCollection(collectionName)
 
         .then((collection) => {
           return updateDataHelper(collection, id);
@@ -477,13 +485,13 @@ export class MongoClient extends Mongo {
     }
   }
 
-  _saveData(path, data, id) {
+  saveData(path, data, id) {
     var _this = this,
         collectionName = path[0];
 
     var promise = new Promise(
       (resolve, reject) => {
-        _this._loadCollection(collectionName)
+        _this.loadCollection(collectionName)
         .then((collection) => {
           return saveDataHelper(collection, id);
         })
@@ -513,7 +521,7 @@ export class MongoClient extends Mongo {
 
     function saveDataHelper(collection, id) {
       data['heypi_id'] = id;
-
+      data['created_at'] = Date.now();
       if (path.length > 1) {
         var mongoQuery = utilities.parseQuery(path[1]);
         if (mongoQuery !== null) {
@@ -567,7 +575,7 @@ export class MongoClient extends Mongo {
 
             .then((doc) => {
               parentID = doc._id.toString();
-              return _this._loadCollection(collectionToAddTo);
+              return _this.loadCollection(collectionToAddTo);
             })
 
             .then((collectionToAddToObj) => {

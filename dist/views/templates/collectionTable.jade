@@ -6,13 +6,13 @@ md-data-table-toolbar
           md-icon(md-font-set="material-icons") menu
     md-toolbar
       md-fab-actions(class="md-toolbar-tools")
-        md-button(aria-label="comment", class="md-icon-button")
+        md-button(aria-label="edit", class="md-icon-button",ng-click="toggleEdit()")
           md-icon(md-font-set="material-icons") edit
-        md-button(aria-label="comment", class="md-icon-button")
-          md-icon(md-font-set="material-icons",ng-click="addItem()") add circle outlined
-        md-button(aria-label="label", class="md-icon-button" ng-click="batch('delete')")
+        md-button(aria-label="add", class="md-icon-button",ng-click="addItem()")
+          md-icon(md-font-set="material-icons") add circle outlined
+        md-button(aria-label="delete", class="md-icon-button" ng-click="deleteItems()")
           md-icon(md-font-set="material-icons") delete
-        md-button(aria-label="photo", class="md-icon-button" ng-click="save()")
+        md-button(aria-label="save", class="md-icon-button" ng-click="saveItems()")
           md-icon(md-font-set="material-icons") save
 
 div(ng-if="!editMode")
@@ -22,26 +22,24 @@ div(ng-if="!editMode")
         tr
           th(ng-repeat="heading in headers",name="{{heading}}",order-by="{{heading}}")
       tbody
-        tr(md-auto-select,ng-repeat="doc in docs.documents track by $index" ng-if="!editMode")
+        tr(md-auto-select,ng-repeat="doc in docs.documents | orderBy: query.order track by $index")
           td(ng-repeat="heading in headers") {{doc[heading]}}
   md-data-table-pagination(md-limit="query.limit",md-page="query.page",md-total="{{docs.total}}",md-trigger="onPaginationChange")
 
 div(ng-if="editMode")
   md-data-table-container
-    table(md-data-table,md-row-select="selected",md-progress="deferred")
+    table(md-data-table,md-progress="deferred")
       thead(md-order="query.order", md-trigger="onOrderChange")
         tr
           th(ng-repeat="heading in headers",name="{{heading}}",order-by="{{heading}}")
       tbody
-        tr(md-auto-select,ng-repeat="newDoc in docsToAdd" ng-if="editMode")
-            div(layout-gt-sm="row")
+        tr(ng-repeat="newDoc in docsToAdd | orderBy: query.order",ng-if="editMode && addMode")
               td(ng-repeat="heading in headers")
                 md-input-container(class="md-block",flex-gt-sm)
                   label {{heading}}
                   input(ng-model="newDoc[heading]" ng-if="heading !== '_id'")
                   input(ng-model="newDoc[heading]" ng-if="heading === '_id'" disabled)
-        tr(md-auto-select,ng-repeat="doc in docs.documents track by $index" ng-if="editMode")
-            div(layout-gt-sm="row")
+        tr(ng-repeat="doc in docs.documents track by $index | orderBy: query.order" ng-if="editMode")
               td(ng-repeat="heading in headers")
                 md-input-container(class="md-block",flex-gt-sm)
                   label {{heading}}

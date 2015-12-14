@@ -1,0 +1,47 @@
+md-data-table-toolbar
+  h2(class="md-title") Documents
+  md-fab-toolbar(md-open="demo.isOpen", count="demo.count", md-direction="right",style="margin-left:30px;")
+    md-fab-trigger(class="align-with-text")
+      md-button(aria-label="menu", class="md-fab md-primary")
+          md-icon(md-font-set="material-icons") menu
+    md-toolbar
+      md-fab-actions(class="md-toolbar-tools")
+        md-button(aria-label="comment", class="md-icon-button", href="editCollection({ name: collection.name})")
+          md-icon(md-font-set="material-icons") edit
+        md-button(aria-label="edit", class="md-icon-button")
+          md-icon(md-font-set="material-icons",ng-click="addItem()") add circle outlined
+        md-button(aria-label="delete", class="md-icon-button" ng-click="delete(selected,'delete')")
+          md-icon(md-font-set="material-icons") delete
+        md-button(aria-label="save", class="md-icon-button" ng-click="saveItems()")
+          md-icon(md-font-set="material-icons") save
+
+md-data-table-container
+  table(md-data-table,md-row-select="selected",md-progress="deferred")
+    thead(md-order="query.order", md-trigger="onOrderChange")
+      tr
+        th(ng-repeat="heading in headers",name="{{heading}}",order-by="{{heading}}")
+    tbody
+      tr(md-auto-select,ng-repeat="doc in docs.documents track by $index" ng-if="!editMode")
+        td(ng-repeat="heading in headers") {{doc[heading]}}
+md-data-table-pagination(md-limit="query.limit",md-page="query.page",md-total="{{docs.total}}",md-trigger="onPaginationChange")
+  //- md-data-table-container
+  //-   table(md-data-table,md-row-select="selected",md-progress="deferred")
+  //-     thead(md-order="query.order", md-trigger="onOrderChange")
+  //-       tr
+  //-         th(ng-repeat="heading in headers",name="{{heading}}",order-by="{{heading}}")
+  //-     tbody
+  //-       tr(md-auto-select,ng-repeat="newDoc in docsToAdd" ng-if="editMode")
+  //-           div(layout-gt-sm="row")
+  //-             td(ng-repeat="heading in headers")
+  //-               md-input-container(class="md-block",flex-gt-sm)
+  //-                 label {{heading}}
+  //-                 input(ng-model="newDoc[heading]" ng-if="heading !== '_id'")
+  //-                 input(ng-model="newDoc[heading]" ng-if="heading === '_id'" disabled)
+  //-       tr(md-auto-select,ng-repeat="doc in docs.documents track by $index" ng-if="editMode")
+  //-           div(layout-gt-sm="row")
+  //-             td(ng-repeat="heading in headers")
+  //-               md-input-container(class="md-block",flex-gt-sm)
+  //-                 label {{heading}}
+  //-                 input(ng-model="doc[heading]" ng-if="heading !== '_id'")
+  //-                 input(ng-model="doc[heading]" ng-if="heading === '_id'" disabled)
+  //- md-data-table-pagination(md-limit="query.limit",md-page="query.page",md-total="{{docs.total}}",md-trigger="onPaginationChange")
