@@ -140,7 +140,11 @@ app.controller('AppController', function($mdSidenav, $http, $scope, $stateParams
   };
 
   $scope.onOrderChange = function (order) {
-    $scope.query.order = order;
+    buildQueryString();
+    getData($scope.query.string).then(function(docs) {
+      console.log($scope.query.string);
+      $scope.docs = docs.data;
+    })
   };
 
   $scope.onPaginationChange = function (page, limit) {
