@@ -98,14 +98,11 @@ var MongoClient = (function (_Mongo) {
 
       var promise = new Promise(function (resolve, reject) {
         _this4.loadCollection(collectionName).then(function (collection) {
-
           var batch = collection.initializeUnorderedBulkOp();
           _underscore2['default'].each(array, function (operation) {
 
             //convert back to ObjectIds
-            if (operation.method !== 'insert') {
-              console.log(operation);
-              console.log('insert');
+            if (operation.document._id !== undefined) {
               operation.document._id = new _mongodb.ObjectID(operation.document._id);
             }
 
@@ -113,8 +110,7 @@ var MongoClient = (function (_Mongo) {
 
               case "delete":
                 console.log('DELETING');
-                console.log(operation.document);
-                batch.find(operation.document).remove();
+                batch.find({ _id: operation.document._id }).remove();
                 break;
 
               case "insert":
@@ -124,17 +120,7 @@ var MongoClient = (function (_Mongo) {
 
               case "update":
                 operation.document['updated_at'] = Date.now();
-                batch.find(operation.document).upsert().updateOne({
-                  $set: operation.document
-                });
-                break;
-
-              case "upsert":
-                if (operation.document['created_at'] === undefined) {
-                  operation.document['created_at'] = Date.now();
-                }
-                operation.document['updated_at'] = Date.now();
-                batch.find(operation.document).updateOne({
+                batch.find({ _id: operation.document._id }).updateOne({
                   $set: operation.document
                 });
                 break;

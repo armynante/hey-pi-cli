@@ -2,10 +2,12 @@
   list = [{"name":"Docs"},{"name":"Home"}]
 
 doctype html
-html(lang="en",ng-app="heypi")
+html(lang="en")
   head
     title= message
     link(href='/bower_components/angular-material/angular-material.min.css',rel='stylesheet')
+    style
+      include home.css
     link(href='/bower_components/angular-material-data-table/dist/md-data-table.min.css',rel='stylesheet')
     link(href='https://fonts.googleapis.com/icon?family=Material+Icons',rel='stylesheet')
     script(src='/bower_components/angular/angular.min.js')
@@ -18,9 +20,12 @@ html(lang="en",ng-app="heypi")
     style
       include home.css
     script
-      include home.js
+      include app.js
+      include services/collectionsFactory.js
+      include controllers/collectionsCtrl.js
+      include controllers/tableCtrl.js
     
-  body(layout="column" ng-controller="AppController as vm")
+  body(layout="column",ng-app="heypi")
     div.header
     md-toolbar(layout="row")
       div.md-toolbar-tools
@@ -33,7 +38,7 @@ html(lang="en",ng-app="heypi")
         md-button(ui-sref="docs").md-accent.md-raised documentaion
         md-button.md-accent.md-raised user management
         md-button.md-accent.md-raised usage stats
-      div(layout="column", flex, id="content" ui-view="")
+      div(layout="column", flex, id="content",ui-view="")
       
         
   

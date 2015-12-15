@@ -39,6 +39,7 @@ router.post('/batch/:collection', (req,res) => {
 		}
 	});
 
+
 	Mongo.batchOperation(req.params.collection,req.body.operations).then((resp) => {
 		res.json(resp);
 	})

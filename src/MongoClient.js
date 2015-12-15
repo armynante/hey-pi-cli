@@ -74,14 +74,11 @@ export class MongoClient extends Mongo {
       (resolve, reject) => {
         this.loadCollection(collectionName)
           .then((collection) => {
-
             var batch = collection.initializeUnorderedBulkOp();
             _.each(array, (operation) => {
 
               //convert back to ObjectIds
-              if (operation.method !== 'insert') {
-                console.log(operation);
-                console.log('insert');
+              if (operation.document._id !== undefined ) {
                 operation.document._id = new ObjectID(operation.document._id);
               }
 
@@ -89,8 +86,7 @@ export class MongoClient extends Mongo {
 
                 case "delete":
                   console.log('DELETING');
-                  console.log(operation.document);
-                  batch.find(operation.document).remove();
+                  batch.find({ _id: operation.document._id}).remove();
                   break;
 
                 case "insert":
@@ -100,19 +96,7 @@ export class MongoClient extends Mongo {
 
                 case "update":
                   operation.document['updated_at'] = Date.now();
-                  batch.find(operation.document)
-                    .upsert()
-                    .updateOne({
-                      $set: operation.document
-                    });
-                  break;
-
-                case "upsert":
-                  if (operation.document['created_at'] === undefined) {
-                    operation.document['created_at'] = Date.now();
-                  }
-                  operation.document['updated_at'] = Date.now();
-                  batch.find(operation.document)
+                  batch.find({ _id: operation.document._id})
                     .updateOne({
                       $set: operation.document
                     });

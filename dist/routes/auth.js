@@ -46,7 +46,7 @@ router.post('/login', function (req, res) {
 
 	var user = { "email": email, "pass": pass };
 	//find user and test pass
-	_serverJs2['default']._getData(['users', 'email_is_' + email]).then(function (resp) {
+	_serverJs2['default'].getData(['users', 'email_is_' + email]).then(function (resp) {
 		//if we get a match
 		if (resp.message.length) {
 			var user = resp.message[0];
@@ -82,10 +82,10 @@ router.post('/', function (req, res) {
 
 	var user = { "email": email, "pass": pass };
 	//find user and test pass
-	_serverJs2['default']._getData(['users', 'email_is_' + email]).then(function (resp) {
+	_serverJs2['default'].get('users', { 'email': user.email }).then(function (resp) {
 		//if we get a match
-		if (resp.message.length) {
-			var user = resp.message[0];
+		if (resp.length) {
+			var user = resp[0];
 			//test the password
 			_bcryptjs2['default'].compare(pass, user.password, function (err, valid) {
 				if (valid) {

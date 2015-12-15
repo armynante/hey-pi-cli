@@ -17,7 +17,7 @@ router.post('/login',(req,res) => {
 
 	var user = { "email": email, "pass": pass};
 	//find user and test pass
-	Mongo._getData(['users','email_is_' + email]).then((resp) => {
+	Mongo.getData(['users','email_is_' + email]).then((resp) => {
 		//if we get a match
 		if (resp.message.length) {
 			var user = resp.message[0];
@@ -56,10 +56,10 @@ router.post('/',(req,res) => {
 
 	var user = { "email": email, "pass": pass};
 	//find user and test pass
-	Mongo._getData(['users','email_is_' + email]).then((resp) => {
+	Mongo.get('users',{'email':user.email}).then((resp) => {
 		//if we get a match
-		if (resp.message.length) {
-			var user = resp.message[0];
+		if (resp.length) {
+			var user = resp[0];
 			//test the password
 			bcrypt.compare(pass, user.password, (err,valid) => {
 				if(valid) {
