@@ -56,12 +56,28 @@ var _routesApiJs = require('./routes/api.js');
 
 var _routesApiJs2 = _interopRequireDefault(_routesApiJs);
 
+var _expressSession = require('express-session');
+
+var _expressSession2 = _interopRequireDefault(_expressSession);
+
+//FIXME Turn to ES6
+var MongoStore = require('connect-mongo')(_expressSession2['default']);
+
 //initialize express:
 var app = (0, _express2['default'])();
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/views');
 app.use(_express2['default']['static']('public'));
 app.use('/bower_components', _express2['default']['static'](_path2['default'].join(__dirname, '../bower_components')));
+
+//sesion stuff
+app.use((0, _expressSession2['default'])({ resave: false,
+	saveUninitialized: true,
+	secret: _configJs2['default'].secret,
+	cookie: { secure: false },
+	store: new MongoStore({ url: 'mongodb://localhost/hey-pi' })
+}));
+
 //load the database
 var Mongo = new _MongoClientJs.MongoClient();
 exports['default'] = Mongo;
@@ -75,7 +91,8 @@ app.use(_bodyParser2['default'].json());
 
 //middlewares
 var checkAuth = function checkAuth(req, res, next) {
-	var token = req.body.token || req.query.token || req.headers['x-access-token'];
+	var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.session.token;
+
 	if (token) {
 		_jsonwebtoken2['default'].verify(token, _configJs2['default'].secret, function (err, validUser) {
 			if (err) {
@@ -95,6 +112,9 @@ var checkAuth = function checkAuth(req, res, next) {
 			}
 		});
 	} else {
+			if (req.session) {
+				console.log(req.session);
+			}
 			res.status(401).json({ success: false, message: 'Failed to provide authentication token.' });
 		}
 };
@@ -114,6 +134,14 @@ var urlStrip = function urlStrip(req, res, next) {
 
 //pre-auth routes
 app.get('/', function (req, res) {
+	res.render('landing');
+});
+
+app.get('/login', function (req, res) {
+	res.render('login');
+});
+
+app.get('/home', function (req, res) {
 	res.render('home', { "email": "mr.mixx@naazdy.net", "token": "LONG_ASS_TOKEN", "password": "your_password" });
 });
 

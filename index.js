@@ -3,7 +3,8 @@ var shell = require('shelljs/global'),
 		chalk = require('chalk'),
 		inquirer = require('inquirer'),
 		config = require('./dist/config.js'),
-		fs = require("fs");
+		fs = require("fs"),
+		DigitalOceanApi = require('digital-ocean-api')
 
 var setupOpts = {
 		type: "list",
@@ -28,10 +29,20 @@ var localOpts = {
 				}
 		}
 };
+var digitalOceanKey = {
+		type: "input",
+		name: "key",
+		message: chalk.bold.magenta("Whats your digital ocean key?"),
+};
 var start = {
 		type: "confirm",
 		name: "start",
 		message: chalk.bold.magenta("Ready to create the Database?"),
+};
+var confirmCosts = {
+		type: "confirm",
+		name: "confirmCosts",
+		message: chalk.bold.magenta("this will cost $$$ ok?"),
 };
 var mongo = {
 		type: "confirm",
@@ -49,36 +60,105 @@ if (option === 'start') {
 	exec('node ./dist/server.js');
 } else {
 
-	inquirer.prompt([setupOpts], function(answers) {
-			if(answers.setup === 'Setup a new database locally') {
-					inquirer.prompt([localOpts,start], function(answers) {
-							if(answers.start) {
-									var validEnv = checkEnv();
-									if(validEnv) {
-											console.log(chalk.bold.green('looks like you have mongo installed! AWESOME!'));
-											//set the port number in the config file;
-											config.port = answers.port;
-											var part1 = '"use strict";Object.defineProperty(exports, "__esModule", {value: true}); var config = '
-											var part2 = ';exports["default"] = config;module.exports = exports["default"];//# sourceMappingURL=config.js.map'
-											fs.writeFileSync('./dist/config.js', part1 + JSON.stringify(config) + part2);
-											console.log(chalk.bold.green('Everything looks good...'));
-											console.log(chalk.bold.gray('Run: '), chalk.bold.white('heypi start'));
-											console.log(chalk.bold.gray('to get the server running. Then visit localhost:' + config.port + ' to see the docs'));
+  inquirer.prompt([setupOpts], function(answers) {
+
+		if(answers.setup === 'Setup a new database locally') {
+
+			inquirer.prompt([localOpts,start], function(answers) {
+
+				if(answers.start) {
+
+					var validEnv = checkEnv();
+
+						if(validEnv) {
+
+							console.log(chalk.bold.green('looks like you have mongo installed! AWESOME!'));
+							//set the port number in the config file;
+							config.port = answers.port;
+
+							var part1 = '"use strict";Object.defineProperty(exports, "__esModule", {value: true}); var config = '
+							var part2 = ';exports["default"] = config;module.exports = exports["default"];//# sourceMappingURL=config.js.map'
+
+							fs.writeFileSync('./dist/config.js', part1 + JSON.stringify(config) + part2);
+
+							console.log(chalk.bold.green('Everything looks good...'));
+							console.log(chalk.bold.gray('Run: '), chalk.bold.white('heypi start'));
+							console.log(chalk.bold.gray('to get the server running. Then visit localhost:' + config.port + ' to see the docs'));
+
+						} else {
+
+							console.log(chalk.red('looks like you dont have mongo installed'));
+							inquirer.prompt([mongo], function(answers) {
+
+								if(answers.install) {
+
+									installMongo();
+									exit(0);
+								} else {
+
+									console.log(chalk.magenta("try and install mongo using brew"), chalk.italic.green("http://brew.sh/"));
+									exit(0);
+								}
+
+							})
+						}
+					}
+				})
+			} else if (answers.setup === 'Host a Hey-PI database on Digital Ocean') {
+				inquirer.prompt([digitalOceanKey,confirmCosts], function(answers) {
+					if(confirmCosts) {
+
+						var api = new DigitalOceanApi({
+							token: answers.key
+						})
+
+						// api.getUserInfo(function(err, info) {
+						// 	if (err) console.log(info);
+						// 	console.log(info);
+						// })
+						var dropId = 9437091;
+						// var droplet = {
+						//   "name": "heypi",
+						//   "region": "nyc3",
+						//   "size": "512mb",
+						//   "image": 14486461,
+						//   "ssh_keys": null,
+						//   "backups": false,
+						//   "ipv6": true,
+						//   "user_data": null,
+						//   "private_networking": false
+						// }
+						//
+						// api.createDroplet(droplet,function(err,resp) {
+						// 	debugger;
+						// 	if (err) console.log(err);
+						// 	dropId = resp.id;
+						// })
+
+						var freq = 2500; // expressed in miliseconds
+						var int = 0;
+
+						console.log(chalk.italic.white('polling digital ocean...'));
+							var timerId = setInterval( function() {
+ 								api.getDroplet(dropId,function(err,resp) {
+									console.log(resp);
+									var active = resp.status === 'active';
+									if (active || int > 5 ) {
+										console.log(chalk.italic.green('droplet created!'));
+										clearInterval(timerId);
 									} else {
-											console.log(chalk.red('looks like you dont have mongo installed'));
-											inquirer.prompt([mongo], function(answers) {
-													if(answers.install) {
-															installMongo();
-															exit(0);
-													} else {
-															console.log(chalk.magenta("try and install mongo using brew"), chalk.italic.green("http://brew.sh/"));
-															exit(0);
-													}
-											});
+										console.log(chalk.italic.white('polling digital ocean...'));
 									}
-							}
-					});
-			};
+									int++;
+								})
+							}, freq );
+
+
+					} else {
+						exit(1)
+					}
+			});
+			}
 	});
 
 }

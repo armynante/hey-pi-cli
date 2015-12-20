@@ -26,6 +26,7 @@
     "md-data-table": "*",
     "angular-ui-router": "~0.2.15",
     "angular-material-data-table": "~0.8.14",
-    "underscore": "~1.8.3"
+    "underscore": "~1.8.3",
+    "material-design-lite": "~1.0.6"
   }
 }

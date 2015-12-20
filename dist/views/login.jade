@@ -1,0 +1,54 @@
+doctype html
+html(lang="en")
+  head
+    title heypi
+    link(href='/bower_components/material-design-lite/material.min.css',rel='stylesheet')
+    link(href='https://fonts.googleapis.com/icon?family=Material+Icons',rel='stylesheet')
+    script(src='/bower_components/material-design-lite/material.min.js')
+    
+  body
+    div(class="mdl-layout mdl-js-layout")
+      header(class="mdl-layout__header mdl-layout__header--scroll")
+        div(class="mdl-layout__header-row",style="font-family:'Avenir Next';")
+          span(class="mdl-layout-title",style="font-family:'Avenir Next';") hey-pi
+
+          div(class="mdl-layout-spacer")
+
+          nav(class="mdl-navigation")
+            a(class="mdl-navigation__link" href="") Github
+            a(class="mdl-navigation__link" href="/") Home
+        
+      div(class="mdl-layout__drawer",style="font-family:'Avenir Next';")
+        span(class="mdl-layout-title") hey-pi
+        nav(class="mdl-navigation")
+          a(class="mdl-navigation__link" href="") Github
+          a(class="mdl-navigation__link" href="/") Home
+        
+      main(class="mdl-layout__content")
+        div(class="page-content",style="padding-top:40px;")
+          
+          div(class="mdl-grid")
+            
+            div(class="mdl-cell mdl-cell--4-col")
+          
+            
+            div(class="mdl-cell mdl-cell--4-col",style="margin:auto;")
+              div(class="demo-card-square mdl-card mdl-shadow--2dp",style="width:auto;text-align:center;")
+                div(class="mdl-card__title mdl-card--expand",style="margin:auto")
+                  form(action="/authorize/login",method="post",id="register")
+                    div(class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label")
+                      input(class="mdl-textfield__input",name="email",type="text",id="email")
+                      label(class="mdl-textfield__label",for="email") email
+                    div(class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label")
+                      input(class="mdl-textfield__input" type="password",name="pass",id="pass")
+                      label(class="mdl-textfield__label" for="pass") password
+                div(class="mdl-card__supporting-text")
+                  | Once you register you will be sent and email that you will need to confirm 
+                  | before you login
+                div(class="mdl-card__actions mdl-card--border")
+                  input(class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect", type="submit",form="register",value="submit")
+                  
+            div(class="mdl-cell mdl-cell-4-col")
+            
+
+            

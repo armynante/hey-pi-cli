@@ -32,6 +32,16 @@ html(lang="en")
         md-button(ng-click="vm.toggleSidenav('left')", hide-gt-sm class="md-icon-button")
           md-icon(md-font-set="material-icons") menu
         h1 HeyPI
+        span(flex)
+        md-menu(md-position-mode="target-right target")
+          md-button(aria-label="Open demo menu",class="md-icon-button",ng-click="$mdOpenMenu($event)",style="color:white") user
+          md-menu-content(width="4")
+            md-menu-item(ng-repeat="item in [1, 2, 3]")
+              md-button(ng-click="ctrl.announceClick($index)")
+                  div(layout="row")
+                    p(flex) Option {{item}}
+                    md-icon(md-menu-align-target md-svg-icon="call:portable-wifi-off",style="margin: auto 3px auto 0;")
+
     div(flex, layout="row")
       md-sidenav(layout='column',md-component-id="left",md-is-locked-open="$mdMedia('gt-sm')").md-sidenav-left.md-whiteframe-4dp
         md-button(ui-sref="collections").md-accent.md-raised collections

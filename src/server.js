@@ -15,6 +15,11 @@ import auth from './routes/auth.js';
 import register from './routes/register.js';
 import confirm from './routes/confirm.js';
 import api from './routes/api.js';
+import session from 'express-session'
+
+//FIXME Turn to ES6
+const MongoStore = require('connect-mongo')(session);
+
 
 //initialize express:
 var app = express();
@@ -22,6 +27,15 @@ app.set('view engine', 'jade');
 app.set('views', __dirname + '/views')
 app.use(express.static('public'));
 app.use('/bower_components', express.static(path.join(__dirname, '../bower_components')));
+
+//sesion stuff
+app.use(session({ resave: false,
+	saveUninitialized: true,
+	secret: config.secret,
+  cookie: { secure: false },
+	store: new MongoStore({ url: 'mongodb://localhost/hey-pi' })
+}));
+
 //load the database
 var Mongo = new MongoClient();
 export default Mongo;
@@ -34,7 +48,8 @@ app.use(bodyParser.json());
 
 //middlewares
 var checkAuth = function(req, res, next) {
-	var token = req.body.token || req.query.token || req.headers['x-access-token'];
+	var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.session.token;
+
 	if (token) {
 		jwt.verify(token, config.secret, (err, validUser) => {
 			if (err) {
@@ -55,6 +70,9 @@ var checkAuth = function(req, res, next) {
 			}
 		});
 	} else {
+		if (req.session) {
+			console.log(req.session);
+		}
 		res.status(401).json({ success: false, message: 'Failed to provide authentication token.' });
 	}
 }
@@ -74,6 +92,14 @@ var urlStrip = function(req, res, next) {
 
 //pre-auth routes
 app.get('/', function(req,res) {
+	res.render('landing')
+});
+
+app.get('/login', function(req,res) {
+	res.render('login')
+});
+
+app.get('/home', function(req,res) {
 	res.render('home', {"email":"mr.mixx@naazdy.net","token":"LONG_ASS_TOKEN","password":"your_password"})
 });
 

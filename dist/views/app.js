@@ -18,6 +18,12 @@ app.config(function($stateProvider,$mdThemingProvider) {
       controller: 'CollectionsCtrl'
     })
 
+  .state('registration', {
+      url:'/register',
+      templateUrl: '/register',
+      controller: 'registrationCtrl'
+    })
+
   .state('collections.collectionTable', {
       url:'/:name',
       resolve: {

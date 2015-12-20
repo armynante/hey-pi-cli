@@ -38,18 +38,21 @@ var _bodyParser = require('body-parser');
 
 var _bodyParser2 = _interopRequireDefault(_bodyParser);
 
+var _expressSession = require('express-session');
+
+var _expressSession2 = _interopRequireDefault(_expressSession);
+
 var router = _express2['default'].Router();
 
 router.post('/login', function (req, res) {
 	var email = req.body.email;
 	var pass = req.body.pass;
-
 	var user = { "email": email, "pass": pass };
 	//find user and test pass
-	_serverJs2['default'].getData(['users', 'email_is_' + email]).then(function (resp) {
+	_serverJs2['default'].get('users', { "email": user.email }).then(function (resp) {
 		//if we get a match
-		if (resp.message.length) {
-			var user = resp.message[0];
+		if (resp.length) {
+			var user = resp[0];
 			//test the password
 			_bcryptjs2['default'].compare(pass, user.password, function (err, valid) {
 				if (valid) {
@@ -60,6 +63,7 @@ router.post('/login', function (req, res) {
 					user['token'] = token;
 					delete user['pass'];
 					user['authorized'] = true;
+					req.session.token = token;
 					res.render('home', { "email": user.email,
 						"password": "your_password",
 						"token": token

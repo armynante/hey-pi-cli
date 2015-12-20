@@ -6,6 +6,7 @@ import collectionUtil from '../collectionUtil.js';
 import utilities from '../utilities.js';
 import jwt from 'jsonwebtoken';
 import bodyParser from 'body-parser';
+import sessions from 'express-session'
 
 var router = express.Router();
 
@@ -14,13 +15,12 @@ var router = express.Router();
 router.post('/login',(req,res) => {
 	var email = req.body.email;
 	var pass = req.body.pass;
-
 	var user = { "email": email, "pass": pass};
 	//find user and test pass
-	Mongo.getData(['users','email_is_' + email]).then((resp) => {
+	Mongo.get('users',{ "email": user.email }).then((resp) => {
 		//if we get a match
-		if (resp.message.length) {
-			var user = resp.message[0];
+		if (resp.length) {
+			var user = resp[0];
 			//test the password
 			bcrypt.compare(pass, user.password, (err,valid) => {
 				if(valid) {
@@ -31,6 +31,7 @@ router.post('/login',(req,res) => {
 					user['token'] = token;
 					delete user['pass'];
 					user['authorized'] = true;
+					req.session.token = token;
 					res.render('home', {   "email": user.email,
 														  "password": "your_password",
 															   "token": token
