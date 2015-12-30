@@ -45,6 +45,13 @@ var _expressSession2 = _interopRequireDefault(_expressSession);
 var router = _express2['default'].Router();
 
 router.post('/login', function (req, res) {
+
+	//redirect if session
+	console.log('authorized');
+	if (req.session.authorized) {
+		res.render('home');
+	}
+
 	var email = req.body.email;
 	var pass = req.body.pass;
 	var user = { "email": email, "pass": pass };
@@ -62,12 +69,11 @@ router.post('/login', function (req, res) {
 
 					user['token'] = token;
 					delete user['pass'];
-					user['authorized'] = true;
+
 					req.session.token = token;
-					res.render('home', { "email": user.email,
-						"password": "your_password",
-						"token": token
-					});
+					req.session.authorized = true;
+
+					res.redirect('/home');
 				} else {
 					res.status(401).json({ "success": false, "message": "password incorrect" });
 				}
@@ -77,6 +83,16 @@ router.post('/login', function (req, res) {
 		}
 	})['catch'](function (err) {
 		res.status(500).json({ "success": false, "message": err });
+	});
+});
+
+router.get('/logout', function (req, res) {
+	req.session.destroy(function (err) {
+		if (err) {
+			res.status(500).json({ "success": false, "message": err });
+		} else {
+			res.redirect("/");
+		}
 	});
 });
 

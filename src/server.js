@@ -49,7 +49,7 @@ app.use(bodyParser.json());
 //middlewares
 var checkAuth = function(req, res, next) {
 	var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.session.token;
-
+	
 	if (token) {
 		jwt.verify(token, config.secret, (err, validUser) => {
 			if (err) {

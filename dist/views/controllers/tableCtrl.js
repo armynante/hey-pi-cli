@@ -40,8 +40,11 @@ app.controller('tableCtrl', function($mdSidenav, $http, $scope, $filter, documen
  }
 
  $scope.addItem = function() {
-   $scope.docs.documents.splice(0,$scope.blankObj);
-   $scope.docsToAdd.push(angular.copy($scope.blankObj));
+   if (!$scope.docsToAdd.length > 0) {
+     $scope.docs.documents.splice(0,$scope.blankObj);
+     $scope.docsToAdd.push(angular.copy($scope.blankObj));
+   }
+   
    $scope.editMode = true;
    $scope.addMode = true;
  }

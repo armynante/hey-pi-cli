@@ -24,30 +24,30 @@ html(lang="en")
       include services/collectionsFactory.js
       include controllers/collectionsCtrl.js
       include controllers/tableCtrl.js
+      include controllers/mainCtrl.js
     
-  body(layout="column",ng-app="heypi")
+  body(layout="column",ng-app="heypi", ng-controller="mainCtrl")
     div.header
     md-toolbar(layout="row")
       div.md-toolbar-tools
-        md-button(ng-click="vm.toggleSidenav('left')", hide-gt-sm class="md-icon-button")
+        md-button(ng-click="toggleSidenav('left')", hide-gt-sm class="md-icon-button")
           md-icon(md-font-set="material-icons") menu
-        h1 HeyPI
+        h1 
+          a(href="/") HeyPI
         span(flex)
-        md-menu(md-position-mode="target-right target")
-          md-button(aria-label="Open demo menu",class="md-icon-button",ng-click="$mdOpenMenu($event)",style="color:white") user
-          md-menu-content(width="4")
-            md-menu-item(ng-repeat="item in [1, 2, 3]")
-              md-button(ng-click="ctrl.announceClick($index)")
-                  div(layout="row")
-                    p(flex) Option {{item}}
-                    md-icon(md-menu-align-target md-svg-icon="call:portable-wifi-off",style="margin: auto 3px auto 0;")
-
+        a(href='/authorize/logout') logout
     div(flex, layout="row")
       md-sidenav(layout='column',md-component-id="left",md-is-locked-open="$mdMedia('gt-sm')").md-sidenav-left.md-whiteframe-4dp
-        md-button(ui-sref="collections").md-accent.md-raised collections
-        md-button(ui-sref="docs").md-accent.md-raised documentaion
-        md-button.md-accent.md-raised user management
-        md-button.md-accent.md-raised usage stats
+        ul
+          li(class="sidebar-links",ui-sref="collections")
+            md-icon(md-font-set="material-icons") book
+            span collections
+          li(class="sidebar-links",ui-sref="users" )
+            md-icon(md-font-set="material-icons") account_box
+            span users
+          li(class="sidebar-links",ui-sref="settings" )
+            md-icon(md-font-set="material-icons") settings
+            span settings
       div(layout="column", flex, id="content",ui-view="")
       
         
